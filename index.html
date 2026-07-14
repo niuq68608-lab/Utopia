@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>明暗交界·UTOPIA</title>
+<style>
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+body{
+  min-height: 100vh;
+  color: #e2e2e2;
+  background: #000000;
+  background-image: 
+    radial-gradient(ellipse at 80% 40%, rgba(130, 10, 20, 0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 20% 70%, rgba(80, 5, 12, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 20%, rgba(60, 0, 8, 0.18) 0%, transparent 35%);
+  padding: 56px 16px calc(40px + env(safe-area-inset-bottom));
+}
+.wrap{
+  max-width: 440px;
+  margin: 0 auto;
+}
+.title-box{
+  text-align: center;
+  margin-bottom: 42px;
+}
+.title-box h1{
+  font-size: 30px;
+  color: #f0dede;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.title-box p{
+  font-size: 13px;
+  color: #996b6b;
+}
+.box-list{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.item-card{
+  background: rgba(18, 12, 14, 0.75);
+  border: 1px solid rgba(90, 15, 25, 0.4);
+  border-radius: 16px;
+  padding: 20px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.item-card:active{
+  transform: scale(0.97);
+  background: rgba(45, 8, 14, 0.85);
+  border-color: #d84048;
+}
+.icon{
+  font-size: 28px;
+  color: #d84048;
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+/* 缩小文字区域，控制宽度，不会撑满卡片 */
+.text-box{
+  max-width: 70%;
+}
+.text-box h3{
+  font-size: 18px;
+  color: #f2d9db;
+  margin-bottom: 4px;
+}
+.text-box span{
+  font-size: 13px;
+  color: #b87c82;
+  line-height: 1.4;
+}
+.footer-tip{
+  text-align: center;
+  margin-top: 64px;
+  font-size: 11px;
+  color: #704448;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title-box">
+    <h1>明暗交界·UTOPIA</h1>
+    <p>玩家公益制品｜全部内容7天自动清除</p>
+  </div>
+
+  <div class="box-list">
+    <!-- 0 狸咪日记 -->
+    <div class="item-card" onclick="jump(0)">
+      <div class="icon">📓</div>
+      <div class="text-box">
+        <h3>狸咪日记</h3>
+        <span>秦彻不许偷看！</span>
+      </div>
+    </div>
+
+    <!-- 1 小梅传讯 -->
+    <div class="item-card" onclick="jump(1)">
+      <div class="icon">📩</div>
+      <div class="text-box">
+        <h3>小梅传讯</h3>
+        <span>天道好轮回，小梅帮盯秦彻</span>
+      </div>
+    </div>
+
+    <!-- 2 狸的菠萝18promax（无刘海） -->
+    <div class="item-card" onclick="jump(2)">
+      <div class="icon">📱</div>
+      <div class="text-box">
+        <h3>狸的菠萝18ProMax</h3>
+        <span>尊贵菠萝妹驾到，安卓苹果妹通通闪开</span>
+      </div>
+    </div>
+
+    <!-- 3 偷看小秦 -->
+    <div class="item-card" onclick="jump(3)">
+      <div class="icon">👁️</div>
+      <div class="text-box">
+        <h3>偷看小秦</h3>
+        <span>小秦小秦，在干嘛呀</span>
+      </div>
+    </div>
+
+    <!-- 4 平行世界的我们 -->
+    <div class="item-card" onclick="jump(4)">
+      <div class="icon">🌌</div>
+      <div class="text-box">
+        <h3>平行世界的我们</h3>
+        <span>爱让我们相遇</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-tip">
+    本页面仅玩家自制公益平台，与恋与深空官方无任何关联
+  </div>
+</div>
+
+<script>
+const pages = [
+  'Diary.html',
+  'Info.html',
+  'Chat_improved.html',
+  'Secret.html',
+  'Parallel.html'
+]
+function jump(index){
+  window.location.href = pages[index];
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>狸咪日记｜明暗交界·UTOPIA</title>
+<style>
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+body{
+  min-height: 100vh;
+  color: #e2e2e2;
+  background: #000000;
+  background-image: 
+    radial-gradient(ellipse at 80% 40%, rgba(130, 10, 20, 0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 20% 70%, rgba(80, 5, 12, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 20%, rgba(60, 0, 8, 0.18) 0%, transparent 35%);
+  padding: 44px 16px calc(30px + env(safe-area-inset-bottom));
+}
+.wrap{
+  max-width: 420px;
+  margin: 0 auto;
+}
+.back-btn{
+  color: #d84048;
+  margin-bottom: 20px;
+  display: inline-block;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.back-btn:active{
+  opacity: 0.6;
+}
+.title-box{
+  text-align: center;
+  margin-bottom: 30px;
+}
+.title-box h1{
+  font-size: 22px;
+  color: #f0dede;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.title-box p{
+  font-size: 12px;
+  color: #996b6b;
+}
+.block{
+  background: rgba(12, 12, 14, 0.75);
+  border: 1px solid rgba(90, 15, 25, 0.4);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.block h2{
+  font-size: 16px;
+  color: #f2d9db;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 心情选择 */
+.mood-row{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mood-item{
+  flex: 1;
+  min-width: 60px;
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(90,15,25,0.4);
+  font-size: 13px;
+  color: #b87c82;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mood-item:active{
+  transform: scale(0.96);
+}
+.mood-item.active{
+  background: rgba(180, 25, 45, 0.3);
+  border-color: #d84048;
+  color: #f2d9db;
+}
+.day-list{
+  display: flex;
+  justify-content: space-between;
+  margin-top:12px;
+}
+.day-tag{
+  text-align:center;
+  font-size:12px;
+  color:#996b6b;
+}
+/* 记账 */
+.input-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+}
+input, select{
+  width:100%;
+  padding:10px 12px;
+  background:#0a0a0c;
+  border:1px solid rgba(90,15,25,0.4);
+  border-radius:10px;
+  color:#e2e2e2;
+  font-size:14px;
+  outline:none;
+}
+input:focus{
+  border-color:#d84048;
+}
+.btn{
+  width:100%;
+  padding:11px;
+  border-radius:10px;
+  border:none;
+  background:#3f0b0e;
+  color:#fff;
+  font-size:14px;
+  margin-top:8px;
+  cursor:pointer;
+  transition: opacity 0.2s;
+}
+.btn:active{
+  opacity:0.8;
+}
+.record-item{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid rgba(90,15,25,0.2);
+  font-size:13px;
+  color:#b87c82;
+}
+.clear-all{
+  text-align:center;
+  margin-top:16px;
+  font-size:12px;
+  color:#704448;
+  cursor:pointer;
+}
+.footer-tip{
+  text-align:center;
+  margin-top:40px;
+  font-size:11px;
+  color:#704448;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- 修改后的返回按钮：移除href，用JS控制跳转 -->
+  <div class="back-btn" id="backHome">← 返回首页</div>
+  <div class="title-box">
+    <h1>狸咪日记</h1>
+    <p>秦彻不许偷看！仅本地存储，7天自动清空</p >
+  </div>
+  <!-- 一周心情记录 -->
+  <div class="block">
+    <h2>☁ 本周心情打卡</h2>
+    <div class="mood-row">
+      <div class="mood-item" data-val="平静">平静</div>
+      <div class="mood-item" data-val="生气">生气</div>
+      <div class="mood-item" data-val="emo">emo</div>
+      <div class="mood-item" data-val="开心">开心</div>
+      <div class="mood-item" data-val="兴奋">兴奋</div>
+      <div class="mood-item" data-val="想彻">想彻</div>
+      <div class="mood-item" data-val="期待">期待</div>
+    </div>
+    <div class="day-list" id="weekBox"></div>
+  </div>
+  <!-- 收支账本 -->
+  <div class="block">
+    <h2>💰 收支小账本</h2>
+    <div class="input-row">
+      <select id="typeSel">
+        <option value="收入">收入</option>
+        <option value="支出">支出</option>
+      </select>
+      <input type="number" id="moneyInp" placeholder="金额">
+    </div>
+    <input type="text" id="noteInp" placeholder="备注（氪金/周边/日常）">
+    <button class="btn" id="addRecord">添加记录</button>
+    <div id="recordList"></div>
+    <div class="clear-all" id="clearBtn">一键清空全部日记&账本</div>
+  </div>
+  <div class="footer-tip">
+    数据保存在本机浏览器，7天自动全部清除
+  </div>
+</div>
+<script>
+// 返回按钮逻辑（核心修复代码）
+const backBtn = document.getElementById('backHome');
+backBtn.addEventListener('click', function() {
+  // 有上一页历史就返回上一页
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    // 无历史记录，强制跳首页Cover.html
+    window.location.href = 'Cover.html';
+  }
+});
+
+// 全局存储key
+const STORAGE_KEY = "limiDiaryData";
+// 获取/初始化数据
+function getData(){
+  let raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return {mood:{}, bill:[], createTime:Date.now()};
+  return JSON.parse(raw);
+}
+function saveData(obj){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+}
+// 7天自动清理
+function checkExpire(){
+  let data = getData();
+  const sevenDay = 7 * 24 * 60 * 60 * 1000;
+  if(Date.now() - data.createTime > sevenDay){
+    localStorage.removeItem(STORAGE_KEY);
+    alert("已满7天，日记数据自动清空");
+    location.reload();
+  }
+}
+checkExpire();
+// 渲染星期
+const weekArr = ["一","二","三","四","五","六","日"];
+const weekBox = document.getElementById("weekBox");
+function renderWeek(){
+  weekBox.innerHTML = "";
+  let data = getData();
+  weekArr.forEach(day=>{
+    let div = document.createElement("div");
+    div.className = "day-tag";
+    div.innerText = `周${day}\n${data.mood[day]||"-"}`;
+    weekBox.appendChild(div);
+  })
+}
+renderWeek();
+// 心情选择
+const moodItems = document.querySelectorAll(".mood-item");
+moodItems.forEach(item=>{
+  item.onclick = ()=>{
+    moodItems.forEach(i=>i.classList.remove("active"));
+    item.classList.add("active");
+    let val = item.dataset.val;
+    // 获取今天星期
+    const todayWeek = new Date().getDay() || 7;
+    const wName = weekArr[todayWeek-1];
+    let data = getData();
+    data.mood[wName] = val;
+    saveData(data);
+    renderWeek();
+  }
+})
+// 记账功能
+const addBtn = document.getElementById("addRecord");
+const recordList = document.getElementById("recordList");
+function renderBill(){
+  recordList.innerHTML = "";
+  let data = getData();
+  data.bill.forEach((item,idx)=>{
+    let div = document.createElement("div");
+    div.className = "record-item";
+    div.innerHTML = `
+      <span>${item.type}｜${item.note}</span>
+      <span>${item.money}</span>
+    `;
+    recordList.appendChild(div);
+  })
+}
+renderBill();
+addBtn.onclick = ()=>{
+  let type = document.getElementById("typeSel").value;
+  let money = document.getElementById("moneyInp").value.trim();
+  let note = document.getElementById("noteInp").value.trim();
+  if(!money){
+    alert("请输入金额");
+    return;
+  }
+  let data = getData();
+  data.bill.push({type,money,note});
+  saveData(data);
+  renderBill();
+  document.getElementById("moneyInp").value = "";
+  document.getElementById("noteInp").value = "";
+}
+// 清空全部
+document.getElementById("clearBtn").onclick = ()=>{
+  if(confirm("确定清空所有心情记录和账本？无法恢复！")){
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+</script>
+</body>
+</html>

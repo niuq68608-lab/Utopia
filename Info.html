@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>小梅传讯｜明暗交界·UTOPIA</title>
+<style>
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+body{
+  min-height: 100vh;
+  color: #e2e2e2;
+  background: #000000;
+  background-image: 
+    radial-gradient(ellipse at 80% 40%, rgba(130, 10, 20, 0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 20% 70%, rgba(80, 5, 12, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 20%, rgba(60, 0, 8, 0.18) 0%, transparent 35%);
+  padding: 44px 16px calc(30px + env(safe-area-inset-bottom));
+}
+.wrap{
+  max-width: 420px;
+  margin: 0 auto;
+}
+.back-btn{
+  color: #d84048;
+  margin-bottom: 20px;
+  display: inline-block;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.back-btn:active{
+  opacity:0.6;
+}
+.title-box{
+  text-align: center;
+  margin-bottom: 30px;
+}
+.title-box h1{
+  font-size: 22px;
+  color: #f0dede;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.title-box p{
+  font-size: 12px;
+  color: #996b6b;
+}
+.block{
+  background: rgba(12, 12, 14, 0.75);
+  border: 1px solid rgba(90, 15, 25, 0.4);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.block h2{
+  font-size: 16px;
+  color: #f2d9db;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 情报卡片 */
+.msg-item{
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(90,15,25,0.2);
+  font-size: 13px;
+  color: #b87c82;
+  line-height: 1.6;
+}
+.msg-item:last-child{
+  border-bottom: none;
+}
+.get-btn{
+  width:100%;
+  padding:11px;
+  border-radius:10px;
+  border:none;
+  background:#3f0b0e;
+  color:#fff;
+  font-size:14px;
+  margin-top:10px;
+  cursor:pointer;
+}
+.get-btn:active{
+  opacity:0.8;
+}
+.tip-text{
+  margin-top:12px;
+  font-size:12px;
+  color:#704448;
+  text-align:center;
+  line-height:1.7;
+}
+/* 心情记录区域 */
+.mood-log{
+  margin-top:10px;
+  max-height:260px;
+  overflow-y:auto;
+}
+.mood-row{
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+  font-size:13px;
+  color:#b87c82;
+  border-bottom:1px solid rgba(90,15,25,0.15);
+}
+.footer-tip{
+  text-align:center;
+  margin-top:40px;
+  font-size:11px;
+  color:#704448;
+}
+/* 统一黑色弹窗样式（考试弹窗+随机梅菲斯特弹窗共用） */
+.black-pop-mask{
+  position:fixed;
+  left:0;top:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+.black-pop-box{
+  width:100%;
+  max-width:340px;
+  background:#000;
+  border:1px solid #441010;
+  border-radius:12px;
+  padding:22px 18px;
+  text-align:center;
+}
+.black-pop-box p{
+  color:#e0b0b0;
+  font-size:15px;
+  line-height:1.9;
+  margin-bottom:20px;
+}
+.black-close{
+  padding:8px 22px;
+  background:#220a0a;
+  color:#e2b8b8;
+  border:1px solid #661515;
+  border-radius:8px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- 修改：去掉href，用JS实现返回逻辑，目标首页index.html -->
+  <div class="back-btn" id="backMain">← 返回首页</div>
+  <div class="title-box">
+    <h1>小梅传讯</h1>
+    <p>天道好轮回，小梅帮盯秦彻｜每日2条暗点情报</p>
+  </div>
+  <!-- 情报领取板块 -->
+  <div class="block">
+    <h2>📜 N109暗点情报库</h2>
+    <div id="msgBox"></div>
+    <button class="get-btn" id="getMsgBtn">领取今日情报（剩余次数：<span id="leftNum">2</span>）</button>
+    <div class="tip-text">每日0点重置领取次数，当日仅可领取2条情报</div>
+  </div>
+  <!-- 秦彻心情记录 -->
+  <div class="block">
+    <h2>🌙 小秦今日心情记录</h2>
+    <div class="mood-log" id="moodBox"></div>
+    <div class="tip-text">每日零点清空全部心情记录</div>
+  </div>
+  <div class="footer-tip">
+    全部本地存储，7天自动清除所有记录
+  </div>
+</div>
+<!-- 领完2条情报后的考试黑色弹窗 -->
+<div class="black-pop-mask" id="examPopMask">
+  <div class="black-pop-box">
+    <p>情报后续会有考试哦！不及格可能会被彻罚吧～不过面前这位最强小猫大王一定会满分吧！</p>
+    <button class="black-close" id="examCloseBtn">收到啦</button>
+  </div>
+</div>
+<!-- 进入页面随机触发梅菲斯特黑色弹窗 -->
+<div class="black-pop-mask" id="randomPopMask">
+  <div class="black-pop-box">
+    <p id="randomPopText"></p>
+    <button class="black-close" id="randomCloseBtn">知晓</button>
+  </div>
+</div>
+<script>
+// ========== 新增返回首页逻辑 ==========
+const backBtn = document.getElementById('backMain');
+backBtn.addEventListener('click', function() {
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    // 强制跳转你的真实首页 index.html
+    window.location.href = 'index.html';
+  }
+});
+
+// 本地存储key
+const STORAGE_KEY = "xiaomeiMsgData";
+// 50条暗点情报库
+const infoList = [
+"1. N109区早年是大陆顶尖科技核心，裂空灾变后沦为无规则法外之地，所有官方管制条例在这里全部失效。",
+"2. 外界称N109为109号禁猎区，但它从未被猎人协会官方划定，危险程度远超正规禁猎区域。",
+"3. 整片区域被多层禁猎区包围，进出通道全由暗点组织把控，普通人无暗点通行证根本无法踏入。",
+"4. 区内昼夜能量紊乱，红月夜空会放大流浪体残留气息，夜间交易与暗杀事件发生率是白天三倍。",
+"5. N109流通独立黑市货币，猎人通用信用点在这里只能兑换基础物资，大额芯核交易只认暗点发行的筹码。",
+"6. 区域内不存在完整执法机构，所有冲突解决方式只有私斗、悬赏、或是暗点出面调停（调停需高额芯核报酬）。",
+"7. 裂空灾变的流浪体灾难早已平息，但地下实验室仍在人工培育变异流浪体，是暗点最核心的灰色产业链。",
+"8. 外来旅人切勿随意透露身份，暗点遍布街头眼线，一旦标记为高价值目标，会立刻登上区域悬赏榜。",
+"9. N109的高层建筑大多遗留灾变前的实验设备，顶楼天台是暗点杀手最常埋伏的地点。",
+"10. 每逢红月周期，暗点会放出一批天价悬赏令，目标多是手握稀有芯核、掌握实验秘密的科研者。",
+"11. 暗点组织没有固定总部，据点分散藏在卡戎集市、极乐之境、奇异工坊地下三层，没有任何人见过首领全貌。",
+"12. 暗点眼线遍布N109每一处角落，酒馆服务生、集市小贩、工坊杂役都可能是潜伏的情报探子。",
+"13. 暗点承接全品类灰色委托：芯核掠夺、流浪体捕捉、科研绑架、私人暗杀，唯独拒绝伤害孩童的单子。",
+"14. 想要和暗点达成长期合作，必须在极乐之境出示足量高阶芯核，通过三层身份核验才能获得专属联络人。",
+"15. 暗点内部划分情报、交易、猎杀三支分部，彼此互不干涉，只有顶层人员能调动全部分部力量。",
+"16. 暗点掌握N109所有地下通道分布图，哪怕是废弃管道、建筑夹层，都有专属暗哨24小时轮班看守。",
+"17. 对外泄露暗点内部交易规则的人，会被全区域悬赏，无任何中间人敢包庇泄密者。",
+"18. 暗点不会主动招惹秦彻，组织高层明确下达禁令，禁止任何探子打探、追踪秦彻行踪。",
+"19. 暗点每月会在Solon酒店地下宴会厅举办秘密拍卖会，拍卖品包含禁流芯核、变异流浪体活体、军方废弃实验资料。",
+"20. 暗点发放的黑色通行证分三级，低级仅能进出集市，高级通行证可自由出入奇异工坊地下实验室。",
+"21. 卡戎集市是N109唯一无搜查的自由交易地带，集市边界由暗点武装小队全天驻守，杜绝外来官方猎人闯入。",
+"22. 集市之主于觅手握整片集市所有权，暗点需要借助集市渠道流通货物，二者维持互不侵犯的平衡关系。",
+"23. 集市中央角斗场每三年举办一次斗兽游戏，暗点会提前包揽全部外围赌盘，从中抽取五成高额流水分成。",
+"24. 斗兽游戏参赛选手大多是走投无路的流浪者，暗点会私下签下生死契约，胜者可获得一笔巨额芯核奖励。",
+"25. 卡戎集市后街小巷是小型情报交换点，花少量普通芯核，就能买到区内人物的基础行踪情报。",
+"26. 集市禁止公开贩卖完整人形流浪体，暗点会暗中管控，一旦发现违规商贩，直接没收全部货物并驱逐出集市。",
+"27. 于觅和暗点高层私下有交易，斗兽游戏结束后，会将战败的变异生物残体供给暗点用于实验研究。",
+"28. 集市深夜会开放隐秘后门，专供暗点运送刚捕捉的野生流浪体，天亮前所有货物必须转运至奇异工坊。",
+"29. 极乐之境Elysium是N109最安全的情报中转站，老板艾许令与秦彻私交深厚，暗点探子不敢在此动武。",
+"30. 酒馆招牌“老饕菜单”并非餐单，是暗点流通的委托清单，每条任务对应不同数量的芯核报酬。",
+"31. 秦彻偶尔会独自到极乐之境小坐，他出现的当天，暗点所有外勤探子会主动避开酒馆周边街道。",
+"32. 酒馆二楼包厢专供暗点高层会面，隔音设备由奇异工坊定制，不存在任何窃听、窥探的可能性。",
+"33. 艾许令会悄悄帮秦彻过滤暗点放出的追踪悬赏，抹去所有指向他行踪的情报记录。",
+"34. 想要查询和秦彻相关的情报，暗点会开出天价筹码，且只会提供碎片化模糊线索，绝不透露准确位置。",
+"35. 极乐之境后厨藏着暗点小型情报库，存储近十年N109所有外来者的登记记录。",
+"36. 酒馆只收纯净高阶芯核作为服务费，普通交易筹码在这里无法兑换情报、酒水。",
+"37. 奇异工坊前身是灾变前小型机器人企业，老板陈非凡落脚N109后，与暗点达成长期实验供货合作。",
+"38. 工坊地下四层是秘密实验室，专门拆解流浪体提取芯核，所有产出全部交由暗点统一对外分销。",
+"39. 工坊顶楼天文台望远镜不止用于观星，更是暗点远距离监视整片N109区域的观测设备。",
+"40. 陈非凡掌握暗点急需的变异芯核培育技术，暗点为其提供武装护卫，阻挡其他势力抢夺实验成果。",
+"41. 工坊不对外接待散客，只有持有暗点三级通行证的合作人，才能进入地下交易实验成品。",
+"42. 暗点会将捕捉到的低危流浪体送往奇异工坊改造，改造后的生物用于斗兽游戏赛场。",
+"43. 工坊存储大量裂空灾变原始数据，暗点高价收购这份资料，用于研究流浪体异变根源。",
+"44. 一旦工坊实验发生泄露事故，暗点会第一时间封锁整片街区，清除所有外泄的流浪体与实验痕迹。",
+"45. Solon酒店坐落N109地理中心，暗点大型拍卖会、高层密会几乎全部在此举办，安保由暗点精锐小队全权负责。",
+"46. 酒店天台遗留EVER废弃实验器械，暗点定期派人清理，防止残留实验物质吸引野生高危流浪体聚集。",
+"47. 酒店顶层豪华套房只对暗点核心合作方开放，套房内可私下完成大额芯核、情报的线下交割。",
+"48. 每逢暗点举办大型交易宴会，酒店所有出入口都会临时封锁，无暗点通行证者会被直接驱离区域。",
+"49. 酒店地下储物间长期存放暗点收缴的悬赏赃物，每隔半月统一转运至卡戎集市拆分售卖。",
+"50. 极少有人知晓，秦彻曾短暂入住Solon酒店，那段时间暗点直接暂停酒店所有外勤盯梢任务，全程保持静默。"
+];
+// 随机弹窗文案池
+const randomTextList = [
+"梅菲斯特：嘎！",
+"梅菲斯特：嘎嘎嘎嘎…嘎嘎",
+"梅菲斯特：嘎嘎嘎嘎嘎嘎嘎嘎嘎嘎嘎——",
+"薛明：梅菲斯特说他想你了，不好意思和你说，我这个很帅的人决定帮他一把",
+"薛影：别嘎嘎嘎了！想小老大就飞过去找她！"
+];
+// 心情配置：低概率组（担忧、烦躁、难过）权重1，其余权重5
+const moodPool = [
+  {name:"自信+15",weight:5},
+  {name:"自信+100",weight:5},
+  {name:"自信+∞",weight:5},
+  {name:"想狸",weight:5},
+  {name:"幸福",weight:5},
+  {name:"无奈",weight:5},
+  {name:"期待",weight:5},
+  {name:"开心",weight:5},
+  {name:"悠闲",weight:5},
+  {name:"想唱歌",weight:5},
+  {name:"想听歌",weight:5},
+  {name:"想你",weight:5},
+  {name:"不解",weight:5},
+  {name:"兴奋",weight:5},
+  {name:"担忧",weight:1},
+  {name:"烦躁",weight:1},
+  {name:"难过",weight:1}
+];
+// 获取本地存储数据
+function getStorage(){
+  let raw = localStorage.getItem(STORAGE_KEY);
+  const today = new Date().toLocaleDateString();
+  const defaultData = {
+    createTime:Date.now(),
+    date:today,
+    getLeft:2, // 情报剩余领取次数
+    getInfo:[], // 已领取情报
+    moodList:[], // 今日心情记录 最多12条
+    lastMoodTime:0, // 上次刷新心情时间戳
+    popRandomToday:false // 今日是否弹出过进入随机弹窗
+  };
+  if(!raw) return defaultData;
+  let data = JSON.parse(raw);
+  // 日期更新则重置当日全部数据
+  if(data.date !== today){
+    return defaultData;
+  }
+  return data;
+}
+function saveStorage(obj){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+}
+// 7天全局自动清空数据
+function checkTotalExpire(){
+  let data = getStorage();
+  const sevenDay = 7 * 24 * 60 * 60 * 1000;
+  if(Date.now() - data.createTime > sevenDay){
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+checkTotalExpire();
+// 页面加载触发随机弹窗 50%概率，一天仅一次
+function initRandomPop(){
+  const data = getStorage();
+  if(data.popRandomToday) return;
+  const rand = Math.random();
+  // 50%触发概率
+  if(rand < 0.5){
+    const randomTxt = randomTextList[Math.floor(Math.random() * randomTextList.length)];
+    document.getElementById("randomPopText").innerText = randomTxt;
+    document.getElementById("randomPopMask").style.display = "flex";
+    data.popRandomToday = true;
+    saveStorage(data);
+  }
+}
+// 关闭随机弹窗
+document.getElementById("randomCloseBtn").onclick = function(){
+  document.getElementById("randomPopMask").style.display = "none";
+}
+initRandomPop();
+// 随机抽取不重复情报
+function getRandomInfo(hasList){
+  let canPick = infoList.filter(item=>!hasList.includes(item));
+  if(canPick.length === 0) return "今日情报已全部领取完毕，明天再来吧";
+  let randomIdx = Math.floor(Math.random() * canPick.length);
+  return canPick[randomIdx];
+}
+// 情报领取渲染
+const getMsgBtn = document.getElementById("getMsgBtn");
+const leftNumDom = document.getElementById("leftNum");
+const msgBoxDom = document.getElementById("msgBox");
+const examPopMask = document.getElementById("examPopMask");
+const examCloseBtn = document.getElementById("examCloseBtn");
+function renderMsg(){
+  let data = getStorage();
+  leftNumDom.innerText = data.getLeft;
+  msgBoxDom.innerHTML = "";
+  if(data.getInfo.length === 0){
+    msgBoxDom.innerHTML = '<div class="msg-item">暂未领取情报，点击下方按钮获取今日暗点讯息</div>';
+    return;
+  }
+  data.getInfo.forEach(text=>{
+    let div = document.createElement("div");
+    div.className = "msg-item";
+    div.innerText = text;
+    msgBoxDom.appendChild(div);
+  })
+}
+renderMsg();
+// 领取情报点击事件，仅领完2条弹出黑色考试弹窗
+getMsgBtn.onclick = function(){
+  let data = getStorage();
+  if(data.getLeft <= 0){
+    alert("今日2条情报已全部领取，明日0点重置次数！");
+    return;
+  }
+  let newInfo = getRandomInfo(data.getInfo);
+  data.getInfo.push(newInfo);
+  data.getLeft -= 1;
+  saveStorage(data);
+  renderMsg();
+  // 剩余次数为0（两条全部领完）弹出黑色考试弹窗
+  if(data.getLeft === 0){
+    examPopMask.style.display = "flex";
+  }
+}
+// 关闭考试弹窗
+examCloseBtn.onclick = function(){
+  examPopMask.style.display = "none";
+}
+// 加权随机抽取秦彻心情
+function getRandomMood(){
+  let totalWeight = 0;
+  moodPool.forEach(item=>totalWeight += item.weight);
+  let randomVal = Math.floor(Math.random() * totalWeight);
+  let curSum = 0;
+  for(let item of moodPool){
+    curSum += item.weight;
+    if(randomVal < curSum){
+      return item.name;
+    }
+  }
+  return "开心";
+}
+// 心情列表渲染
+const moodBoxDom = document.getElementById("moodBox");
+function renderMood(){
+  let data = getStorage();
+  moodBoxDom.innerHTML = "";
+  if(data.moodList.length === 0){
+    moodBoxDom.innerHTML = '<div class="mood-row"><span>暂无今日心情记录</span></div>';
+    return;
+  }
+  data.moodList.forEach((item,idx)=>{
+    let div = document.createElement("div");
+    div.className = "mood-row";
+    div.innerHTML = `<span>小秦现在心情${idx+1}</span><span>${item}</span>`;
+    moodBoxDom.appendChild(div);
+  })
+}
+renderMood();
+// 后台2小时自动刷新心情，页面无提示文字
+function checkRefreshMood(){
+  const data = getStorage();
+  const now = Date.now();
+  const twoHour = 2 * 60 * 60 * 1000;
+  if(now - data.lastMoodTime >= twoHour && data.moodList.length < 12){
+    let newMood = getRandomMood();
+    data.moodList.push(newMood);
+    data.lastMoodTime = now;
+    saveStorage(data);
+    renderMood();
+  }
+}
+checkRefreshMood();
+setInterval(checkRefreshMood,30000);
+</script>
+</body>
+</html>

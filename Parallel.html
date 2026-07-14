@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<style>
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+body{
+  min-height: 100vh;
+  color: #e2e2e2;
+  background: #000000;
+  background-image: 
+    radial-gradient(ellipse at 80% 40%, rgba(130, 10, 20, 0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 20% 70%, rgba(80, 5, 12, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 20%, rgba(60, 0, 8, 0.18) 0%, transparent 35%);
+  padding: 44px 16px calc(30px + env(safe-area-inset-bottom));
+}
+.wrap{
+  max-width: 420px;
+  margin: 0 auto;
+}
+.back-btn{
+  color: #d84048;
+  margin-bottom: 20px;
+  display: inline-block;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.back-btn:active{
+  opacity: 0.6;
+}
+.header-box{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap:10px;
+}
+.title-main h1{
+  font-size: 22px;
+  color: #f0dede;
+  letter-spacing: 1px;
+}
+.title-main p{
+  font-size: 12px;
+  color: #996b6b;
+  margin-top: 4px;
+}
+.header-right-group{
+  display:flex;
+  gap:8px;
+}
+.mail-btn{
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #d84048;
+  background: rgba(12,12,14,0.7);
+  color: #f0dede;
+  font-size: 16px;
+  cursor: pointer;
+}
+.user-set-btn{
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #d84048;
+  object-fit:cover;
+  background: #333;
+  cursor: pointer;
+}
+.block{
+  background: rgba(12, 12, 14, 0.75);
+  border: 1px solid rgba(90, 15, 25, 0.4);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.block h2{
+  font-size: 16px;
+  color: #f2d9db;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 留言区域 */
+.msg-list{
+  max-height: 360px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+.msg-item{
+  background: rgba(40,20,25,0.3);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.msg-user{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.msg-avatar{
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #333;
+}
+.msg-name{
+  color: #f0dede;
+  font-size: 14px;
+}
+.msg-text{
+  font-size: 14px;
+  color: #b87c82;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.msg-btn-group{
+  display: flex;
+  gap: 10px;
+}
+.msg-btn{
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+}
+.hug-btn{
+  background: #602030;
+  color: #fff;
+}
+.report-btn{
+  background: #333;
+  color: #ccc;
+}
+/* 揭开面纱按钮 */
+.unfold-btn{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:#702035;
+  color:#fff;
+  font-size:14px;
+  margin-bottom:16px;
+  cursor: pointer;
+}
+.unfold-btn:disabled{
+  background:#3a101c;
+  color:#888;
+  cursor:not-allowed;
+}
+.unfold-tip{
+  text-align:center;
+  font-size:12px;
+  color:#996b6b;
+  margin-bottom:12px;
+}
+/* 发言输入区 */
+.textarea-box{
+  width:100%;
+  background: rgba(20,15,20,0.6);
+  border: 1px solid rgba(90,15,25,0.4);
+  border-radius: 10px;
+  padding: 12px;
+  color: #f0dede;
+  font-size: 14px;
+  min-height: 80px;
+  resize: none;
+}
+.send-info{
+  font-size: 12px;
+  color: #704448;
+  margin: 8px 0 12px;
+  text-align: right;
+}
+.send-btn{
+  width:100%;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  background:#d84048;
+  color:#fff;
+  font-size:14px;
+  cursor: pointer;
+}
+.send-btn:disabled{
+  background:#441010;
+  color:#886060;
+  cursor: not-allowed;
+}
+.footer-sofi{
+  text-align: center;
+  margin-top: 30px;
+}
+.sofi-btn{
+  color: #d84048;
+  font-size: 13px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+/* 通用弹窗 */
+.pop-mask{
+  position: fixed;
+  left:0;top:0;
+  width:100%;height:100%;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.pop-box{
+  width: 100%;
+  max-width: 360px;
+  background: #0a0a0c;
+  border: 1px solid #441010;
+  border-radius: 14px;
+  padding: 22px;
+  max-height:80vh;
+  overflow-y:auto;
+}
+.pop-title{
+  font-size: 18px;
+  color: #f0dede;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.pop-desc{
+  font-size: 14px;
+  color: #b87c82;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.pop-input{
+  width:100%;
+  padding: 10px;
+  background: rgba(20,15,20,0.6);
+  border: 1px solid rgba(90,15,25,0.4);
+  border-radius: 8px;
+  color: #f0dede;
+  margin-bottom: 12px;
+}
+.pop-file{
+  width:100%;
+  color:#b87c82;
+  margin-bottom: 12px;
+  font-size:14px;
+}
+.pop-btn{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#d84048;
+  color:#fff;
+  font-size:14px;
+  margin-top:8px;
+  cursor: pointer;
+}
+.pop-close{
+  background:#333;
+}
+/* 拥抱轻提示 */
+.tip-toast{
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  background: rgba(20,10,15,0.9);
+  border:1px solid #d84048;
+  border-radius:10px;
+  padding:14px 20px;
+  color:#f0dede;
+  font-size:14px;
+  z-index: 1000;
+  display:none;
+}
+.mail-item{
+  padding:8px 0;
+  border-bottom:1px solid rgba(90,15,25,0.2);
+  color:#f0dede;
+  font-size:14px;
+}
+</style>
+<title>平行世界的我们｜明暗交界·UTOPIA</title>
+</head>
+<body>
+<div class="wrap">
+  <!-- 修复：JS返回按钮 -->
+  <div class="back-btn" id="backMain">← 返回首页</div>
+  <div class="header-box">
+    <div class="title-main">
+      <h1>平行世界的我们</h1>
+      <p>请为另一对平行时空的彼此留下话语</p>
+    </div>
+    <div class="header-right-group">
+      <button class="mail-btn" id="mailBtn">📩</button>
+      <img class="user-set-btn" id="userSetBtn" src="" alt="">
+    </div>
+  </div>
+  <div class="block">
+    <h2>💌 平行留言</h2>
+    <div class="unfold-tip">已揭开：<span id="unfoldCount">0</span>/30 条留言</div>
+    <button class="unfold-btn" id="unfoldBtn">揭开狸的神秘面纱</button>
+    <div class="msg-list" id="msgList"></div>
+    <textarea class="textarea-box" id="msgInput" placeholder="请为世界上的另一对‘我们’留言吧…"></textarea>
+    <div class="send-info">今日剩余可发送：<span id="sendLeft">3</span>/3</div>
+    <button class="send-btn" id="sendBtn">发送留言</button>
+  </div>
+  <div class="footer-sofi">
+    <button class="sofi-btn" id="sofiBtn">Sofi</button>
+  </div>
+</div>
+<!-- 首次进入发言规则弹窗 -->
+<div class="pop-mask" id="rulePopMask">
+  <div class="pop-box">
+    <div class="pop-title">发言规范须知</div>
+    <div class="pop-desc">
+      本板块仅用于温柔治愈留言交流<br>
+      严禁发布任何政治、色情、暴力相关违规内容<br>
+      违规内容会被直接拦截，多次违规将限制发言功能<br>
+      请大家友善交流，珍惜这片平行小世界
+    </div>
+    <button class="pop-btn" id="ruleConfirmBtn">我已阅读并遵守规则</button>
+  </div>
+</div>
+<!-- 个人资料弹窗（相册上传头像） -->
+<div class="pop-mask" id="userPopMask">
+  <div class="pop-box">
+    <div class="pop-title">个人资料设置</div>
+    <div class="pop-file">
+      上传头像（本地相册选择）：
+      <input type="file" accept="image/*" id="avatarFile">
+    </div>
+    <input class="pop-input" id="nameInput" placeholder="输入你的昵称（2-8个汉字/字符）">
+    <div class="pop-desc">上传头像+填写昵称后才可发布留言</div>
+    <button class="pop-btn" id="saveUserBtn">保存资料</button>
+    <button class="pop-btn pop-close" id="closeUserBtn">关闭</button>
+  </div>
+</div>
+<!-- 信箱弹窗 -->
+<div class="pop-mask" id="mailPopMask">
+  <div class="pop-box">
+    <div class="pop-title">我的信箱 · 拥抱记录</div>
+    <div id="mailList"></div>
+    <div class="pop-desc" id="mailEmptyTip" style="display:none;">暂时还没有人给你送拥抱哦</div>
+    <button class="pop-btn pop-close" id="closeMailBtn">关闭信箱</button>
+  </div>
+</div>
+<!-- Sofi反馈弹窗 -->
+<div class="pop-mask" id="sofiPopMask">
+  <div class="pop-box">
+    <div class="pop-title">问题反馈</div>
+    <div class="pop-desc">
+      关于Bug，请加群和我们反馈吧～<br>
+      vx群号：自行替换填写群号
+    </div>
+    <button class="pop-btn" id="closeSofiBtn">知道啦</button>
+  </div>
+</div>
+<!-- 拥抱轻提示 -->
+<div class="tip-toast" id="hugToast"></div>
+<script>
+// 返回首页逻辑
+const backBtn = document.getElementById('backMain');
+backBtn.addEventListener('click', function() {
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = 'index.html';
+  }
+});
+
+const STORAGE_USER = "worldUserInfo";
+const STORAGE_SEND_COUNT = "worldSendCount";
+const STORAGE_MSG_LIST = "worldMsgList";
+const STORAGE_RULE_READ = "worldRuleRead";
+const STORAGE_MAIL_HUG = "worldHugMail";
+const STORAGE_UNFOLD_NUM = "worldUnfoldNum";
+// 基础配置
+const sensitiveWords = ["政治", "时政", "色情", "黄", "淫秽", "暴力", "血腥", "反动", "低俗"];
+const MAX_MSG_NUM = 30;
+const SEND_LIMIT_PER_DAY = 3;
+// DOM
+const rulePopMask = document.getElementById("rulePopMask");
+const ruleConfirmBtn = document.getElementById("ruleConfirmBtn");
+const mailBtn = document.getElementById("mailBtn");
+const mailPopMask = document.getElementById("mailPopMask");
+const closeMailBtn = document.getElementById("closeMailBtn");
+const mailList = document.getElementById("mailList");
+const mailEmptyTip = document.getElementById("mailEmptyTip");
+const userSetBtn = document.getElementById("userSetBtn");
+const userPopMask = document.getElementById("userPopMask");
+const avatarFile = document.getElementById("avatarFile");
+const nameInput = document.getElementById("nameInput");
+const saveUserBtn = document.getElementById("saveUserBtn");
+const closeUserBtn = document.getElementById("closeUserBtn");
+const sofiBtn = document.getElementById("sofiBtn");
+const sofiPopMask = document.getElementById("sofiPopMask");
+const closeSofiBtn = document.getElementById("closeSofiBtn");
+const msgList = document.getElementById("msgList");
+const msgInput = document.getElementById("msgInput");
+const sendBtn = document.getElementById("sendBtn");
+const sendLeft = document.getElementById("sendLeft");
+const hugToast = document.getElementById("hugToast");
+const unfoldBtn = document.getElementById("unfoldBtn");
+const unfoldCount = document.getElementById("unfoldCount");
+let avatarBase64 = "";
+// 存储工具
+function getStorage(key){
+  const raw = localStorage.getItem(key);
+  try{ return JSON.parse(raw); }catch{ return null; }
+}
+function setStorage(key, data){
+  localStorage.setItem(key, JSON.stringify(data));
+}
+function getTodayStr(){
+  return new Date().toLocaleDateString();
+}
+// 初始化页面
+function initPage(){
+  // 发言规则弹窗
+  const ruleRead = getStorage(STORAGE_RULE_READ);
+  if(!ruleRead) rulePopMask.style.display = "flex";
+  // 用户资料
+  const userInfo = getStorage(STORAGE_USER) || {avatar:"",nick:""};
+  avatarBase64 = userInfo.avatar;
+  nameInput.value = userInfo.nick;
+  renderHeaderAvatar();
+  // 当日发送计数
+  let sendData = getStorage(STORAGE_SEND_COUNT) || {date:"",count:0};
+  if(sendData.date !== getTodayStr()){
+    sendData = {date:getTodayStr(), count:0};
+    setStorage(STORAGE_SEND_COUNT, sendData);
+  }
+  sendLeft.innerText = SEND_LIMIT_PER_DAY - sendData.count;
+  refreshSendBtnState();
+  // 已揭开条数
+  let unfoldNum = getStorage(STORAGE_UNFOLD_NUM) || 0;
+  unfoldCount.innerText = unfoldNum;
+  refreshUnfoldBtn();
+  // 初始不渲染留言，空白
+  msgList.innerHTML = '<div style="text-align:center;color:#704448;font-size:13px;">点击上方按钮揭开第一条留言</div>';
+}
+// 右上角头像渲染
+function renderHeaderAvatar(){
+  const user = getStorage(STORAGE_USER);
+  const headImg = document.getElementById("userSetBtn");
+  if(user && user.avatar){
+    headImg.src = user.avatar;
+  }else{
+    headImg.src = "";
+    headImg.style.background = "#333";
+  }
+}
+// 更新揭开按钮状态
+function refreshUnfoldBtn(){
+  const num = Number(unfoldCount.innerText);
+  unfoldBtn.disabled = num >= MAX_MSG_NUM;
+}
+// 敏感词检测
+function checkSensitive(text){
+  return sensitiveWords.some(w=>text.includes(w));
+}
+// 随机取数组
+function randomPick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+// 揭开单条留言逻辑
+unfoldBtn.onclick = function(){
+  let currentUnfold = Number(unfoldCount.innerText);
+  if(currentUnfold >= MAX_MSG_NUM) return;
+  // 读取全部留言库
+  let allMsg = getStorage(STORAGE_MSG_LIST) || [];
+  if(allMsg.length === 0){
+    return alert("暂时还没有任何人发布留言，稍后再来揭开吧");
+  }
+  // 当前展示条数+1
+  currentUnfold += 1;
+  unfoldCount.innerText = currentUnfold;
+  setStorage(STORAGE_UNFOLD_NUM, currentUnfold);
+  refreshUnfoldBtn();
+  // 截取前N条渲染
+  const showMsg = allMsg.slice(0, currentUnfold);
+  renderShowMsg(showMsg);
+}
+// 渲染已揭开的留言
+function renderShowMsg(msgArr){
+  msgList.innerHTML = "";
+  msgArr.forEach((item, idx)=>{
+    const div = document.createElement("div");
+    div.className = "msg-item";
+    div.innerHTML = `
+      <div class="msg-user">
+        <img class="msg-avatar" src="${item.avatar}">
+        <span class="msg-name">${item.nick}</span>
+      </div>
+      <div class="msg-text">${item.content}</div>
+      <div class="msg-btn-group">
+        <button class="msg-btn hug-btn" data-nick="${item.nick}">拥抱</button>
+        <button class="msg-btn report-btn">举报</button>
+      </div>
+    `;
+    msgList.appendChild(div);
+  })
+  // 拥抱绑定
+  document.querySelectorAll(".hug-btn").forEach(btn=>{
+    btn.onclick = function(){
+      const targetNick = this.dataset.nick;
+      const me = getStorage(STORAGE_USER);
+      if(!me || !me.nick) return alert("请先完善头像和昵称");
+      saveHugMail(targetNick, me.nick);
+      hugToast.innerText = `你给${targetNick}送去拥抱，对方信箱会收到记录`;
+      hugToast.style.display = "block";
+      setTimeout(()=>hugToast.style.display = "none",1500);
+    }
+  })
+  document.querySelectorAll(".report-btn").forEach(b=>{
+    b.onclick = ()=>alert("举报已提交，工作人员核查");
+  })
+}
+// 保存拥抱到对方信箱
+function saveHugMail(target, sender){
+  let mail = getStorage(STORAGE_MAIL_HUG) || [];
+  mail.unshift({targetNick:target, fromNick:sender, time:Date.now()});
+  setStorage(STORAGE_MAIL_HUG, mail);
+}
+// 更新发送按钮
+function refreshSendBtnState(){
+  const user = getStorage(STORAGE_USER) || {avatar:"",nick:""};
+  const sendData = getStorage(STORAGE_SEND_COUNT);
+  sendBtn.disabled = !(user.avatar && user.nick && sendData.count < SEND_LIMIT_PER_DAY);
+}
+// 发送留言
+sendBtn.onclick = function(){
+  const txt = msgInput.value.trim();
+  if(!txt) return alert("请输入留言内容");
+  if(checkSensitive(txt)) return alert("内容含政治/色情/暴力违规词汇，请修改");
+  const user = getStorage(STORAGE_USER);
+  const sendData = getStorage(STORAGE_SEND_COUNT);
+  const newMsg = {
+    avatar: user.avatar,
+    nick: user.nick,
+    content: txt,
+    time: Date.now()
+  };
+  let allMsg = getStorage(STORAGE_MSG_LIST) || [];
+  allMsg.unshift(newMsg);
+  if(allMsg.length > MAX_MSG_NUM) allMsg = allMsg.slice(0, MAX_MSG_NUM);
+  setStorage(STORAGE_MSG_LIST, allMsg);
+  sendData.count += 1;
+  setStorage(STORAGE_SEND_COUNT, sendData);
+  msgInput.value = "";
+  sendLeft.innerText = SEND_LIMIT_PER_DAY - sendData.count;
+  refreshSendBtnState();
+}
+// 弹窗事件
+ruleConfirmBtn.onclick = ()=>{
+  setStorage(STORAGE_RULE_READ, true);
+  rulePopMask.style.display = "none";
+}
+mailBtn.onclick = ()=>{
+  renderMailBox();
+  mailPopMask.style.display = "flex";
+}
+closeMailBtn.onclick = ()=>mailPopMask.style.display = "none";
+userSetBtn.onclick = ()=>userPopMask.style.display = "flex";
+closeUserBtn.onclick = ()=>userPopMask.style.display = "none";
+sofiBtn.onclick = ()=>sofiPopMask.style.display = "flex";
+closeSofiBtn.onclick = ()=>sofiPopMask.style.display = "none";
+// 头像文件上传
+avatarFile.addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{ avatarBase64 = ev.target.result; }
+  reader.readAsDataURL(file);
+})
+saveUserBtn.onclick = function(){
+  const nick = nameInput.value.trim();
+  if(!avatarBase64) return alert("请上传相册头像");
+  if(nick.length <2 || nick.length>8) return alert("昵称2-8字符");
+  setStorage(STORAGE_USER, {avatar:avatarBase64, nick:nick});
+  userPopMask.style.display = "none";
+  renderHeaderAvatar();
+  refreshSendBtnState();
+  alert("资料保存成功");
+}
+// 渲染信箱拥抱
+function renderMailBox(){
+  const mail = getStorage(STORAGE_MAIL_HUG) || [];
+  mailList.innerHTML = "";
+  if(mail.length ===0){
+    mailEmptyTip.style.display = "block";
+    return;
+  }
+  mailEmptyTip.style.display = "none";
+  mail.forEach(item=>{
+    const div = document.createElement("div");
+    div.className = "mail-item";
+    div.innerText = `${item.fromNick} 给你发送了拥抱`;
+    mailList.appendChild(div);
+  })
+}
+initPage();
+</script>
+</body>
+</html>

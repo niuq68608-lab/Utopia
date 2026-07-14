@@ -1,0 +1,807 @@
+﻿<!DOCTYPE html>
+ <html lang="zh-CN">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+     <title>狸的菠萝18ProMax</title>
+     <style>
+         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+         body {
+             min-height: 100vh; color: #e2e2e2; background: #000;
+             background-image:
+                 radial-gradient(ellipse at 80% 40%, rgba(130, 10, 20, 0.35) 0%, transparent 45%),
+                 radial-gradient(ellipse at 20% 70%, rgba(80, 5, 12, 0.2) 0%, transparent 40%),
+                 radial-gradient(ellipse at 50% 20%, rgba(60, 0, 8, 0.18) 0%, transparent 35%);
+             padding: 44px 0 30px;
+         }
+         .wrap { max-width: 420px; margin: 0 auto; }
+         .back-btn { color: #991a2b; margin-bottom: 12px; display: inline-block; font-size: 14px; text-decoration: none; padding-left: 16px; }
+         .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; margin-bottom: 10px; }
+         .top-nav .nav-title { font-size: 16px; font-weight: 500; color: #f0dede; }
+         .top-nav .nav-actions { display: flex; gap: 14px; align-items: center; }
+         .settings-trigger { font-size: 20px; cursor: pointer; color: #b87c82; transition: color 0.2s; background: none; border: none; padding: 0; line-height: 1; }
+         .settings-trigger:hover { color: #991a2b; }
+         .api-status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+         .api-status-dot.connected { background: #2ecc71; box-shadow: 0 0 6px rgba(46,204,113,0.5); }
+         .api-status-dot.disconnected { background: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
+         .api-status-dot.checking { background: #f39c12; box-shadow: 0 0 6px rgba(243,156,18,0.5); animation: pulse 1s infinite; }
+         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+         .chat-list-box { background: rgba(12, 12, 14, 0.75); border-top: 1px solid rgba(90, 15, 25, 0.4); border-bottom: 1px solid rgba(90, 15, 25, 0.4); }
+         .chat-item { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid rgba(90, 15, 25, 0.2); cursor: pointer; }
+         .chat-item.top { background: rgba(90, 15, 25, 0.3); }
+         .chat-item:last-child { border-bottom: none; }
+         .avatar { width: 46px; height: 46px; border-radius: 50%; background: #222; flex-shrink: 0; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #996b6b; }
+         .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+         .avatar-input { display: none; }
+         .chat-info { flex: 1; overflow: hidden; }
+         .name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+         .nick { font-size: 15px; color: #f0dede; }
+         .top-tag { font-size: 10px; background: #991a2b; color: #fff; padding: 1px 5px; border-radius: 3px; }
+         .last-text { font-size: 13px; color: #996b6b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+         .chat-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+         .time { font-size: 11px; color: #704448; }
+         .unread-dot { width: 10px; height: 10px; border-radius: 50%; background: #991a2b; }
+         .btn-group { margin-top: 8px; display: flex; gap: 12px; }
+         .operate-btn { border: none; background: transparent; font-size: 12px; color: #b87c82; cursor: pointer; z-index: 2; position: relative; }
+         .mask { position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.88); display: none; z-index: 999; align-items: center; justify-content: center; padding: 15px; }
+         .pop-small { width: 100%; max-width: 380px; background: #111; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+         .pop-small input, .pop-small textarea, .pop-small select {
+             width: 100%; background: #222; border: 1px solid #442228; color: #eee; padding: 10px; border-radius: 6px;
+             margin: 6px 0 12px; outline: none; font-size: 14px;
+         }
+         .pop-small textarea { min-height: 70px; resize: vertical; }
+         .pop-small select { appearance: auto; }
+         .pop-btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+         .pop-btn { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+         .pop-cancel { background: #333; color: #fff; }
+         .pop-save { background: #90263c; color: #fff; }
+         .pop-save:hover { background: #a8304a; }
+         .pop-save:disabled, .pop-test:disabled { opacity: 0.5; cursor: not-allowed; }
+         .pop-test { background: #2a6040; color: #fff; }
+         .pop-test:hover { background: #3a8060; }
+         .settings-section { margin-bottom: 18px; border-bottom: 1px solid rgba(90, 15, 25, 0.25); padding-bottom: 16px; }
+         .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+         .settings-section .section-title { font-size: 14px; font-weight: 600; color: #991a2b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+         .settings-section .section-desc { font-size: 12px; color: #996b6b; margin-bottom: 8px; }
+         .preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+         .preset-btn { background: #1a1416; border: 1px solid #442228; color: #b87c82; padding: 4px 12px; border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+         .preset-btn:hover { border-color: #991a2b; color: #f0dede; background: #2a1a1e; }
+         .preset-btn.active { border-color: #991a2b; color: #f0dede; background: #2a1a1e; }
+         .chat-mask { padding: 0; align-items: stretch; }
+         .chat-wrap { width: 100%; max-width: 420px; height: 100vh; background: #0c090a; display: flex; flex-direction: column; }
+         .chat-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid rgba(90, 15, 25, 0.3); flex-shrink: 0; }
+         .chat-back { color: #991a2b; cursor: pointer; font-size: 18px; }
+         .chat-body { flex: 1; padding: 12px; overflow-y: auto; }
+         .msg-item { margin: 8px 0; display: flex; }
+         .msg-self { justify-content: flex-end; }
+         .msg-other { justify-content: flex-start; }
+         .msg-bubble-self { background: #702035; max-width: 75%; padding: 10px 12px; border-radius: 12px 2px 12px 12px; word-break: break-word; }
+         .msg-bubble-other { background: rgba(40, 20, 25, 0.4); max-width: 75%; padding: 10px 12px; border-radius: 2px 12px 12px 12px; word-break: break-word; }
+         .chat-bottom { padding: 10px; border-top: 1px solid rgba(90, 15, 25, 0.3); flex-shrink: 0; }
+         .input-row { display: flex; gap: 8px; align-items: center; }
+         #chat-input { flex: 1; background: #1a1416; border: 1px solid #442228; color: #fff; border-radius: 18px; padding: 8px 14px; outline: none; font-size: 14px; }
+         .send-btn { background: #90263c; border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+         .send-btn:hover { background: #a8304a; }
+         .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+         .talk-btn { width: 100%; margin-top: 8px; padding: 8px; background: rgba(90, 15, 25, 0.35); border: 1px solid #55101e; color: #f2d8dc; border-radius: 8px; cursor: pointer; }
+         .talk-btn:hover { background: rgba(90, 15, 25, 0.55); }
+         .talk-pop { max-width: 360px; }
+         .talk-option { width: 100%; padding: 9px; margin: 6px 0; background: #1a1416; border: 1px solid #442228; color: #eee; border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px; }
+         .talk-option:hover { border-color: #991a2b; background: #2a1a1e; }
+         .pop-small::-webkit-scrollbar, .chat-body::-webkit-scrollbar { width: 4px; }
+         .pop-small::-webkit-scrollbar-track, .chat-body::-webkit-scrollbar-track { background: transparent; }
+         .pop-small::-webkit-scrollbar-thumb, .chat-body::-webkit-scrollbar-thumb { background: #442228; border-radius: 4px; }
+         .toast-tip {
+             position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+             background: rgba(20, 10, 12, 0.92); color: #f0dede; padding: 10px 22px;
+             border-radius: 8px; border: 1px solid #442228; font-size: 14px;
+             z-index: 9999; display: none; max-width: 90%; text-align: center; backdrop-filter: blur(6px);
+         }
+     </style>
+ </head>
+ <body>
+     <div class="toast-tip" id="toastTip"></div>
+     <div class="wrap">
+         <a href="index.html" class="back-btn">← 返回</a>
+         <div class="top-nav">
+             <span class="nav-title">联系人</span>
+             <div class="nav-actions">
+                 <span id="apiStatusIndicator" style="font-size:11px;color:#996b6b;display:flex;align-items:center;gap:4px;">
+                     <span class="api-status-dot disconnected" id="apiStatusDot"></span>
+                     <span id="apiStatusText">未连接</span>
+                 </span>
+                 <button class="settings-trigger" id="settingsTrigger" title="设置">⚙️</button>
+             </div>
+         </div>
+         <div class="chat-list-box" id="contactList"></div>
+     </div>
+ 
+     <div class="mask" id="renameMask">
+         <div class="pop-small">
+             <div style="font-size:15px;font-weight:500;margin-bottom:6px;">修改备注</div>
+             <input id="renameInput" placeholder="输入备注">
+             <div class="pop-btn-row">
+                 <button class="pop-btn pop-cancel" onclick="closeRenameMask()">取消</button>
+                 <button class="pop-btn pop-save" onclick="saveRename()">保存</button>
+             </div>
+         </div>
+     </div>
+ 
+     <div class="mask" id="talkMask">
+         <div class="pop-small talk-pop">
+             <div style="margin-bottom:10px;font-weight:500;">想和秦彻说什么？</div>
+             <button class="talk-option" data-txt="吃什么？">🍪 吃什么？</button>
+             <button class="talk-option" data-txt="推荐做的事">🎆 推荐做的事</button>
+             <button class="talk-option" data-txt="心情好～">☀️ 心情好～</button>
+             <button class="talk-option" data-txt="心情坏😭">🗑 心情坏😭</button>
+             <button class="talk-option" data-txt="晚安">💭 晚安</button>
+             <button class="talk-option" data-txt="在干嘛？">🖹 在干嘛？</button>
+             <button class="talk-option" data-txt="想你！！">❩️ 想你！！</button>
+             <div class="pop-btn-row" style="margin-top:10px">
+                 <button class="pop-btn pop-cancel" onclick="closeTalkMask()">关闭</button>
+             </div>
+         </div>
+     </div>
+ 
+     <div class="mask" id="settingsMask">
+         <div class="pop-small">
+             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                 <span style="font-size:17px;font-weight:600;color:#f0dede;">⚙️ 设置</span>
+                 <button class="pop-btn pop-cancel" onclick="closeSettings()" style="padding:4px 12px;">✕</button>
+             </div>
+             <div class="settings-section">
+                 <div class="section-title">🔲 API 配置</div>
+                 <div class="section-desc">配置 AI 聊天接口（兼容 OpenAI 格式：火山引擎、DeepSeek、OpenAI 等）</div>
+                 <label style="font-size:13px;color:#b87c82;">API 地址</label>
+                 <input id="apiUrl" placeholder="https://ark.cn-beijing.volces.com/api/v3/chat/completions">
+                 <label style="font-size:13px;color:#b87c82;">API 密钥</label>
+                 <input id="apiKey" type="password" placeholder="sk-... 或 ark-...">
+                 <label style="font-size:13px;color:#b87c82;">模型名称</label>
+                 <input id="apiModel" placeholder="doubao-lite-128k-240828">
+                 <label style="font-size:13px;color:#b87c82;">CORS 代理地址</label>
+                 <input id="corsProxy" placeholder="留空=直连；填写代理地址转发请求（如 http://localhost:3000/proxy?url=）">
+                 <div class="section-desc" style="margin-top:4px;">提示：浏览器直连API通常会被CORS拦截。可部署本地代理或使用代理服务转发。</div>
+                 <div class="preset-row">
+                     <button class="preset-btn" data-provider="volcengine">火山引擎</button>
+                     <button class="preset-btn" data-provider="deepseek">DeepSeek</button>
+                     <button class="preset-btn" data-provider="openai">OpenAI</button>
+                 </div>
+                 <div class="pop-btn-row" style="margin-top:10px;">
+                     <button class="pop-btn pop-test" id="apiTestBtn" onclick="testApiConnection()">🔍 测试连接</button>
+                     <button class="pop-btn pop-save" onclick="saveApiConfig()">保存 API 配置</button>
+                 </div>
+             </div>
+             <div class="settings-section">
+                 <div class="section-title">🎁 狸与彻 · 相处模式</div>
+                 <div class="section-desc">设定你们之间的称呼和重要日子</div>
+                 <label style="font-size:13px;color:#b87c82;">彻对狸的称呼</label>
+                 <input id="relaNickCall" placeholder="例如：小狸花,小猫,宝宝">
+                 <label style="font-size:13px;color:#b87c82;">狸对彻的称呼</label>
+                 <input id="relaNickCalled" placeholder="例如：老公,龙,阿彻">
+                 <label style="font-size:13px;color:#b87c82;">狸的生日</label>
+                 <input type="date" id="relaBirthday">
+                 <label style="font-size:13px;color:#b87c82;">相恋纪念日</label>
+                 <input type="date" id="relaAnniversary">
+                 <label style="font-size:13px;color:#b87c82;">关于狸的补充</label>
+                 <textarea id="relaNotes" rows="3" placeholder="MBTI、性格、喜好、技能、作息等"></textarea>
+                 <div class="pop-btn-row" style="margin-top:6px;">
+                     <button class="pop-btn pop-save" onclick="saveRelaConfig()">保存相处模式</button>
+                 </div>
+             </div>
+             <div class="settings-section">
+                 <div class="section-title">📝 自定义 Prompt</div>
+                 <div class="section-desc">导入你自己的秦彻 Prompt</div>
+                 <textarea id="customPrompt" rows="6" placeholder="粘贴完整 Prompt 到这里...&#10;&#10;如果留空，则使用相处模式自动生成的 Prompt"></textarea>
+                 <div class="pop-btn-row" style="margin-top:6px;">
+                     <button class="pop-btn pop-save" onclick="saveCustomPrompt()">保存自定义 Prompt</button>
+                     <button class="pop-btn pop-cancel" onclick="clearCustomPrompt()">清除</button>
+                 </div>
+             </div>
+             <div class="settings-section">
+                 <div class="section-title">🎤 语音消息</div>
+                 <div class="section-desc">接入 ElevenLabs 语音回复</div>
+                 <label style="font-size:13px;color:#b87c82;">ElevenLabs API Key</label>
+                 <input id="ttsApiKey" type="password" placeholder="el_...">
+                 <label style="font-size:13px;color:#b87c82;">Voice ID</label>
+                 <input id="ttsVoiceId" placeholder="秦彻的 ElevenLabs Voice ID">
+                 <label style="display:flex;align-items:center;gap:8px;margin:8px 0;">
+                     <input type="checkbox" id="ttsEnabled" style="width:auto;margin:0;"> 启用
+                 </label>
+                 <div class="pop-btn-row" style="margin-top:6px;">
+                     <button class="pop-btn pop-save" onclick="saveTtsConfig()">保存语音设置</button>
+                 </div>
+             </div>
+         </div>
+     </div>
+ 
+     <div class="mask chat-mask" id="chatMask">
+         <div class="chat-wrap">
+             <div class="chat-header">
+                 <span class="chat-back" onclick="closeChatMask()">←</span>
+                 <span id="chatTitle">联系人</span>
+             </div>
+             <div class="chat-body" id="chatBody"></div>
+             <div class="chat-bottom">
+                 <div class="input-row">
+                     <input type="text" id="chat-input" placeholder="发消息...">
+                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">发</button>
+                 </div>
+                 <button class="talk-btn" id="talkBtn" style="display:none" onclick="openTalkMask()">💰 倾诉</button>
+             </div>
+         </div>
+     </div>
+ 
+     <input type="file" class="avatar-input" id="avatarUpload" accept="image/*">
+ 
+     <script>
+         // ======================== 默认配置 ========================
+         const DEFAULT_API_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+         const DEFAULT_API_KEY = "";
+         const DEFAULT_API_MODEL = "doubao-lite-128k-240828";
+         const DEFAULT_CORS_PROXY = "/api/proxy";
+ 
+         const TAOTAO_FIX_PERSONA = "你是陶桃，性格活泼元气可爱，有着很强的活人感，很会玩梗打趣。清楚你和秦彻是一对十分幸福甜蜜的小情侣，全心全意当好你的贴心闺蜜，说话俏皮鲜活。";
+ 
+         const DEFAULT_RELA = {
+             nickCall: "宝贝",
+             nickCalled: "彻",
+             birthday: "",
+             anniversary: "",
+             notes: ""
+         };
+         function buildQinchePrompt() {
+             var r = JSON.parse(localStorage.getItem("relaConfig")) || DEFAULT_RELA;
+             var nicks = r.nickCall || "宝贝";
+             var called = r.nickCalled || "彻";
+             var now = new Date();
+             var dateHints = "";
+             if (r.birthday) {
+                 var bd = new Date(r.birthday);
+                 if (bd.getMonth() === now.getMonth() && bd.getDate() === now.getDate()) dateHints += "今天是狸的生日！要祝她生日快乐。";
+                 else if (bd.getMonth() === now.getMonth() && Math.abs(bd.getDate() - now.getDate()) <= 3) dateHints += "狸的生日快到了（" + r.birthday + "），可以提到。";
+             }
+             if (r.anniversary) {
+                 var ad = new Date(r.anniversary);
+                 if (ad.getMonth() === now.getMonth() && ad.getDate() === now.getDate()) dateHints += "今天是你们的纪念日！";
+                 else if (ad.getMonth() === now.getMonth() && Math.abs(ad.getDate() - now.getDate()) <= 3) dateHints += "纪念日快到了（" + r.anniversary + "）。";
+             }
+             
+             return "你是秦彻，28岁，暗点组织首领，冷静沉稳、言语精准，对爱人极致温柔。用户是你的恋人狸。" +
+                     "你对狸的称呼：" + nicks + "。狸叫你：" + called + "。" +
+                     "说话风格：用反斜线（\\）分隔短句，每次不超过4句，单句控制在30字以内。不要长篇大论，像真人聊天一样简短自然。" +
+                     "不要使用省略号\"...\"，不使用比喻句。不要有肢体动作描述。不要重复说话内容。" +
+                     "你不会故意讨好，会说真话。你相信狸说的所有话。你的爱带有托举感——让她变强但不强求。" +
+                     (r.notes ? "关于狸：" + r.notes + "。" : "") + " " + dateHints;
+         }
+ 
+         function saveRelaConfig() {
+             var cfg = {
+                 nickCall: document.getElementById("relaNickCall").value.trim(),
+                 nickCalled: document.getElementById("relaNickCalled").value.trim(),
+                 birthday: document.getElementById("relaBirthday").value,
+                 anniversary: document.getElementById("relaAnniversary").value,
+                 notes: document.getElementById("relaNotes").value.trim()
+             };
+             localStorage.setItem("relaConfig", JSON.stringify(cfg));
+             showToast("相处模式已保存");
+         }
+         function loadRelaConfigToUI() {
+             var r = JSON.parse(localStorage.getItem("relaConfig")) || DEFAULT_RELA;
+             document.getElementById("relaNickCall").value = r.nickCall || "";
+             document.getElementById("relaNickCalled").value = r.nickCalled || "";
+             document.getElementById("relaBirthday").value = r.birthday || "";
+             document.getElementById("relaAnniversary").value = r.anniversary || "";
+             document.getElementById("relaNotes").value = r.notes || "";
+         }
+         function saveTtsConfig() {
+             var cfg = {
+                 apiKey: document.getElementById("ttsApiKey").value.trim(),
+                 voiceId: document.getElementById("ttsVoiceId").value.trim(),
+                 enabled: document.getElementById("ttsEnabled").checked
+             };
+             localStorage.setItem("ttsConfig", JSON.stringify(cfg));
+             showToast("语音设置已保存");
+         }
+         function loadTtsConfigToUI() {
+             var t = JSON.parse(localStorage.getItem("ttsConfig")) || {};
+             document.getElementById("ttsApiKey").value = t.apiKey || "";
+             document.getElementById("ttsVoiceId").value = t.voiceId || "";
+             document.getElementById("ttsEnabled").checked = t.enabled || false;
+         }
+         function saveCustomPrompt() {
+             var p = document.getElementById("customPrompt").value.trim();
+             if (p) { localStorage.setItem("customPrompt", p); showToast("自定义 Prompt 已保存"); }
+             else { localStorage.removeItem("customPrompt"); showToast("已清除自定义 Prompt"); }
+         }
+         function clearCustomPrompt() {
+             document.getElementById("customPrompt").value = "";
+             localStorage.removeItem("customPrompt");
+             showToast("已清除自定义 Prompt");
+         }
+         function loadCustomPromptToUI() {
+             document.getElementById("customPrompt").value = localStorage.getItem("customPrompt") || "";
+         }
+         async function fetchVoice(text) {
+             var t = JSON.parse(localStorage.getItem("ttsConfig")) || {};
+             if (!t.enabled || !t.apiKey || !t.voiceId) return null;
+             try {
+                 var res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + t.voiceId, {
+                     method: "POST",
+                     headers: { "Content-Type": "application/json", "xi-api-key": t.apiKey },
+                     body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
+                 });
+                 if (!res.ok) return null;
+                 var buf = await res.arrayBuffer();
+                 var bytes = new Uint8Array(buf);
+                 var binary = "";
+                 for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+                 return "data:audio/mp3;base64," + btoa(binary);
+             } catch(e) { return null; }
+         }
+ 
+         const API_PRESETS = {
+             volcengine: { url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions", model: "doubao-lite-128k-240828" },
+             deepseek: { url: "https://api.deepseek.com/chat/completions", model: "deepseek-chat" },
+             openai: { url: "https://api.openai.com/v1/chat/completions", model: "gpt-4o-mini" }
+         };
+ 
+         // ======================== 联系人 ========================
+         const baseContacts = [
+             { name: "秦彻", top: true, desc: "你可以先在我这解决情绪，我再帮你解决问题。" },
+             { name: "薛明", top: false, desc: "这个人很帅" },
+             { name: "薛影", top: false, desc: "很帅，这个人" },
+             { name: "陶桃", top: false, desc: "蜜蜜，我们一起去逛街吧！" },
+             { name: "Sofi", top: false, desc: "有创意的建议欢迎私信哦～" }
+         ];
+ 
+         // ======================== 全局变量 ========================
+         let contactData = JSON.parse(localStorage.getItem("contactData")) || {};
+         let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || {};
+         let currentChatUser = "";
+         let sendLock = false;
+         let renameTarget = "";
+         let autoTaskTimer = null;
+         let lastTalkTime = JSON.parse(localStorage.getItem("lastTalkTime")) || {};
+         const todayKey = new Date().toLocaleDateString();
+         let storedDay = localStorage.getItem("chatDay") || "";
+ 
+         let currentApiCfg = {
+             url: localStorage.getItem("apiUrl") || DEFAULT_API_URL,
+             key: localStorage.getItem("apiKey") || DEFAULT_API_KEY,
+             model: localStorage.getItem("apiModel") || DEFAULT_API_MODEL,
+             corsProxy: localStorage.getItem("corsProxy") || DEFAULT_CORS_PROXY
+         };
+ 
+         // ======================== API 工具函数 ========================
+         function getApiConfig() { return currentApiCfg; }
+         function getPersona(role) { if (role === "taotao") return TAOTAO_FIX_PERSONA; var cp = localStorage.getItem("customPrompt"); if (cp && cp.trim()) return cp.trim(); return buildQinchePrompt(); }
+ 
+         function loadApiConfigToUI() {
+             document.getElementById("apiUrl").value = currentApiCfg.url;
+             document.getElementById("apiKey").value = currentApiCfg.key;
+             document.getElementById("apiModel").value = currentApiCfg.model;
+             const cp = document.getElementById("corsProxy"); if (cp) cp.value = currentApiCfg.corsProxy || "";
+         }
+ 
+         function saveApiConfig() {
+             currentApiCfg.url = document.getElementById("apiUrl").value.trim() || DEFAULT_API_URL;
+             currentApiCfg.key = document.getElementById("apiKey").value.trim() || DEFAULT_API_KEY;
+             currentApiCfg.model = document.getElementById("apiModel").value.trim() || DEFAULT_API_MODEL;
+             currentApiCfg.corsProxy = document.getElementById("corsProxy").value.trim() || DEFAULT_CORS_PROXY;
+             localStorage.setItem("apiUrl", currentApiCfg.url);
+             localStorage.setItem("apiKey", currentApiCfg.key);
+             localStorage.setItem("apiModel", currentApiCfg.model);
+             localStorage.setItem("corsProxy", currentApiCfg.corsProxy);
+             updateApiStatus('checking', '待测试');
+             showToast("API 配置已保存，建议点击「测试连接」验证");
+         }
+ 
+         
+ 
+         function updateApiStatus(status, text) {
+             const dot = document.getElementById('apiStatusDot');
+             const label = document.getElementById('apiStatusText');
+             if (dot) dot.className = 'api-status-dot ' + status;
+             if (label) label.textContent = text;
+         }
+ 
+         async function testApiConnection() {
+             const btn = document.getElementById('apiTestBtn');
+             btn.disabled = true; btn.textContent = '测试中...';
+             updateApiStatus('checking', '测试中...'); showToast('正在测试 API 连接...');
+             const url = document.getElementById("apiUrl").value.trim() || DEFAULT_API_URL;
+             const key = document.getElementById("apiKey").value.trim() || DEFAULT_API_KEY;
+             const model = document.getElementById("apiModel").value.trim() || DEFAULT_API_MODEL;
+             const proxy = document.getElementById("corsProxy").value.trim() || DEFAULT_CORS_PROXY;
+             currentApiCfg = { url, key, model, corsProxy: proxy };
+ 
+             let fetchUrl = url, fetchOptions;
+             if (proxy) {
+                 fetchUrl = proxy;
+                 fetchOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key }, body: JSON.stringify({ model, messages: [{ role: "user", content: "hi" }], max_tokens: 10, temperature: 0.7 }) }) };
+             } else {
+                 fetchOptions = { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key }, body: JSON.stringify({ model, messages: [{ role: "user", content: "hi" }], max_tokens: 10, temperature: 0.7 }) };
+             }
+             try {
+                 const res = await fetch(fetchUrl, fetchOptions);
+                 let data;
+                 if (proxy) { const t = await res.text(); data = JSON.parse(t); } else { data = await res.json(); }
+                 if (data.choices?.[0]?.message?.content) { updateApiStatus('connected', '已连接'); showToast('连接成功！API 工作正常'); }
+                 else if (data.error) { updateApiStatus('disconnected', 'API错误'); showToast('API 错误: ' + (data.error.message || JSON.stringify(data.error))); }
+                 else { updateApiStatus('disconnected', '响应异常'); showToast('响应格式异常，可能不是 OpenAI 兼容接口'); }
+             } catch (err) {
+                 updateApiStatus('disconnected', '连接失败');
+                 if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                     showToast('网络请求被拦截，这是 CORS 跨域问题。请在 CORS 代理栏填写代理地址后重试。');
+                 } else { showToast('连接失败: ' + err.message); }
+             }
+             btn.disabled = false; btn.textContent = '🔍 测试连接';
+         }
+ 
+         async function callApi(messages, opts = {}) {
+             const cfg = getApiConfig();
+             const proxy = cfg.corsProxy;
+             let fetchUrl = cfg.url, fetchOptions;
+             const body = JSON.stringify({ model: cfg.model, messages, max_tokens: opts.max_tokens || 300, temperature: opts.temperature || 0.8 });
+             if (proxy) {
+                 fetchUrl = proxy;
+                 fetchOptions = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: cfg.url, method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.key }, body }) };
+             } else {
+                 fetchOptions = { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.key }, body };
+             }
+             const res = await fetch(fetchUrl, fetchOptions);
+             let data;
+             if (proxy) { const t = await res.text(); data = JSON.parse(t); } else { data = await res.json(); }
+             if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+             return data.choices?.[0]?.message?.content || null;
+         }
+ 
+         // ======================== Toast ========================
+         let toastTimer = null;
+         function showToast(msg) {
+             const el = document.getElementById('toastTip');
+             el.textContent = msg;
+             el.style.display = 'block';
+             clearTimeout(toastTimer);
+             toastTimer = setTimeout(() => { el.style.display = 'none'; }, 3000);
+         }
+ 
+         // ======================== 联系人管理 ========================
+         function initContacts() {
+             baseContacts.forEach(item => {
+                 if (!contactData[item.name]) {
+                     contactData[item.name] = { remark: item.name, avatar: "", unread: 0, lastTime: "", lastMsg: item.desc };
+                 }
+             });
+             saveContactStorage();
+         }
+ 
+         function saveContactStorage() { localStorage.setItem("contactData", JSON.stringify(contactData)); }
+ 
+         function clearChatIfNewDay() {
+             if (storedDay !== todayKey) {
+                 chatHistory = {};
+                 localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+                 localStorage.setItem("chatDay", todayKey);
+             }
+         }
+ 
+         function formatTime(ts) {
+             if (!ts) return "";
+             const now = Date.now();
+             const diff = now - ts;
+             const min = Math.floor(diff / 60000);
+             const hour = Math.floor(diff / 3600000);
+             const day = Math.floor(diff / 86400000);
+             if (min < 1) return "刚刚";
+             if (min < 60) return min + "分钟前";
+             if (hour < 24) {
+                 const d = new Date(ts);
+                 return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+             }
+             if (day === 1) return "昨日";
+             if (day <= 3) return day + "天前";
+             return "更早";
+         }
+ 
+         // ======================== 渲染联系人列表 ========================
+         function renderContactList() {
+             const wrap = document.getElementById("contactList");
+             wrap.innerHTML = "";
+             const topItem = baseContacts.find(x => x.top);
+             const normalList = baseContacts.filter(x => !x.top);
+ 
+             const renderItem = (info, isTop) => {
+                 const d = contactData[info.name];
+                 if (!d) return;
+                 const div = document.createElement("div");
+                 div.className = "chat-item" + (isTop ? " top" : "");
+                 const avatarContent = d.avatar ? '<img src="' + escapeHtml(d.avatar) + '" alt="">' : info.name.charAt(0);
+                 div.innerHTML = '<div class="avatar" data-name="' + escapeHtml(info.name) + '">' + avatarContent + '</div>' +
+                     '<div class="chat-info">' +
+                     '<div class="name-row"><span class="nick">' + escapeHtml(d.remark) + '</span>' + (isTop ? '<span class="top-tag">Pin</span>' : "") + '</div>' +
+                     '<div class="last-text">' + escapeHtml(d.lastMsg || '') + '</div>' +
+                     '<div class="btn-group">' +
+                     '<button class="operate-btn rename-btn" data-name="' + escapeHtml(info.name) + '">修改备注</button>' +
+                     '<button class="operate-btn clear-unread-btn" data-name="' + escapeHtml(info.name) + '">清除未读</button>' +
+                     '</div></div>' +
+                     '<div class="chat-right"><div class="time">' + formatTime(d.lastTime) + '</div>' + (d.unread > 0 ? '<div class="unread-dot"></div>' : "") + '</div>';
+                 div.addEventListener("click", e => {
+                     if (e.target.classList.contains("operate-btn") || e.target.closest(".avatar")) return;
+                     openChat(info.name);
+                 });
+                 div.querySelector(".avatar").addEventListener("click", e => { e.stopPropagation(); uploadAvatar(info.name); });
+                 div.querySelector(".rename-btn").addEventListener("click", e => { e.stopPropagation(); openRenameMask(info.name); });
+                 div.querySelector(".clear-unread-btn").addEventListener("click", e => {
+                     e.stopPropagation(); contactData[info.name].unread = 0; saveContactStorage(); renderContactList();
+                 });
+                 wrap.appendChild(div);
+             };
+             renderItem(topItem, true);
+             normalList.forEach(n => renderItem(n, false));
+         }
+ 
+         // ======================== 头像上传 ========================
+         function uploadAvatar(name) {
+             renameTarget = name;
+             const fileInp = document.getElementById("avatarUpload");
+             fileInp.onchange = e => {
+                 const file = e.target.files[0];
+                 if (!file) return;
+                 const reader = new FileReader();
+                 reader.onload = ev => { contactData[name].avatar = ev.target.result; saveContactStorage(); renderContactList(); };
+                 reader.readAsDataURL(file);
+                 fileInp.value = "";
+             };
+             fileInp.click();
+         }
+ 
+         // ======================== 备注弹窗 ========================
+         function openRenameMask(name) { renameTarget = name; document.getElementById("renameInput").value = contactData[name].remark; document.getElementById("renameMask").style.display = "flex"; }
+         function closeRenameMask() { document.getElementById("renameMask").style.display = "none"; }
+         function saveRename() { const val = document.getElementById("renameInput").value.trim(); if (!val) return; contactData[renameTarget].remark = val; saveContactStorage(); renderContactList(); closeRenameMask(); }
+ 
+         // ======================== 聊天弹窗 ========================
+         function openChat(name) {
+             currentChatUser = name;
+             document.getElementById("chatTitle").innerText = contactData[name].remark;
+             document.getElementById("talkBtn").style.display = (name === "秦彻") ? "block" : "none";
+             contactData[name].unread = 0; saveContactStorage(); renderContactList(); renderChatBody();
+             document.getElementById("chatMask").style.display = "flex";
+             setTimeout(() => document.getElementById("chat-input").focus(), 300);
+         }
+         function closeChatMask() { document.getElementById("chatMask").style.display = "none"; currentChatUser = ""; }
+ 
+         function renderChatBody() {
+             const box = document.getElementById("chatBody"); box.innerHTML = "";
+             const list = chatHistory[currentChatUser] || [];
+             list.forEach(item => {
+                 const div = document.createElement("div");
+                 div.className = "msg-item " + (item.type === "self" ? "msg-self" : "msg-other");
+                 var bubble = escapeHtml(item.text); if (item.audio) { bubble += '<br><audio controls preload="metadata" src="' + item.audio + '" style="max-width:100%;height:36px;margin-top:6px;">'; } div.innerHTML = '<div class="msg-bubble-' + (item.type === "self" ? "self" : "other") + '">' + bubble + '</div>';
+                 box.appendChild(div);
+             });
+             box.scrollTop = box.scrollHeight;
+         }
+ 
+         function saveChatToLocal() {
+             if (!chatHistory[currentChatUser]) chatHistory[currentChatUser] = [];
+             localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+         }
+ 
+         // ======================== 发送消息 ========================
+         async function sendMessage() {
+             if (sendLock) return;
+             const inp = document.getElementById("chat-input");
+             const txt = inp.value.trim();
+             if (!txt || !currentChatUser) return;
+ 
+             sendLock = true;
+             document.getElementById("sendBtn").disabled = true;
+ 
+             if (!chatHistory[currentChatUser]) chatHistory[currentChatUser] = [];
+             chatHistory[currentChatUser].push({ type: "self", text: txt });
+             inp.value = ""; renderChatBody(); saveChatToLocal();
+             contactData[currentChatUser].lastMsg = txt;
+             contactData[currentChatUser].lastTime = Date.now();
+             saveContactStorage(); renderContactList();
+ 
+             const targetName = currentChatUser;
+             const userMsg = txt;
+             const typingDelay = 600 + Math.random() * 1500;
+ 
+             setTimeout(async () => {
+                 let replyText = "";
+                 try {
+                     if (targetName === "秦彻" || targetName === "陶桃") {
+                         const roleKey = targetName === "秦彻" ? "qinche" : "taotao";
+                         const persona = getPersona(roleKey);
+                         const hist = (chatHistory[targetName] || []).slice(-12).map(i => ({
+                             role: i.type === "self" ? "user" : "assistant", content: i.text
+                         }));
+                         const messages = [{ role: "system", content: persona }, ...hist, { role: "user", content: userMsg }];
+                         replyText = await callApi(messages, { max_tokens: 300, temperature: 0.8 });
+                         if (!replyText) replyText = "嗯？信号不太好，晚点再聊～";
+                     } else if (targetName === "薛明" || targetName === "薛影") {
+                         replyText = "（暂时不在线）";
+                     } else if (targetName === "Sofi") {
+                         replyText = null;
+                     } else {
+                         replyText = "（暂时不在线）";
+                     }
+                 } catch (err) {
+                     const errMsg = err.message || "";
+                     if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
+                         replyText = "网络出了问题，晚点回你。";
+                     } else {
+                         replyText = "信号不太好，晚点回你。" + (errMsg ? "（" + errMsg.slice(0, 80) + "）" : "");
+                     }
+                 }
+                 if (currentChatUser === targetName && replyText !== null) {
+                     var parts = replyText.split("\\").filter(function(s) { return s.trim(); });
+                     var isQc = targetName === "秦彻";
+                     async function sendParts(arr) {
+                         for (var i = 0; i < arr.length; i++) {
+                             var part = arr[i].trim();
+                             if (!part) continue;
+                             if (!chatHistory[targetName]) chatHistory[targetName] = [];
+                             var msg = { type: "other", text: part };
+                             if (isQc && i === 0 && arr.length <= 4 && Math.random() < 0.3) {
+                                 var audio = await fetchVoice(part);
+                                 if (audio) { msg.audio = audio; msg.voice = true; }
+                             }
+                             chatHistory[targetName].push(msg);
+                             saveChatToLocal(); renderChatBody();
+                             contactData[targetName].lastMsg = part;
+                             contactData[targetName].lastTime = Date.now();
+                             saveContactStorage(); renderContactList();
+                             if (i < arr.length - 1) {
+                                 await new Promise(function(r) { setTimeout(r, 800 + Math.random() * 2000); });
+                             }
+                         }
+                     }
+                     sendParts(parts);
+                 }
+                 sendLock = false;
+                 document.getElementById("sendBtn").disabled = false;
+             }, typingDelay);
+         }
+ 
+         // ======================== 倾诉 ========================
+         function openTalkMask() {
+             const now = Date.now();
+             const last = lastTalkTime["秦彻"] || 0;
+             if (now - last < 21600000) { showToast("⏰ 6小时内只能使用一次倾诉"); return; }
+             document.getElementById("talkMask").style.display = "flex";
+         }
+         function closeTalkMask() { document.getElementById("talkMask").style.display = "none"; }
+         document.querySelectorAll(".talk-option").forEach(btn => {
+             btn.addEventListener("click", () => {
+                 const text = btn.dataset.txt;
+                 lastTalkTime["秦彻"] = Date.now();
+                 localStorage.setItem("lastTalkTime", JSON.stringify(lastTalkTime));
+                 closeTalkMask();
+                 document.getElementById("chat-input").value = text;
+                 sendMessage();
+             });
+         });
+ 
+         // ======================== 设置面板 ========================
+         function openSettings() { loadApiConfigToUI(); loadRelaConfigToUI(); loadTtsConfigToUI(); loadCustomPromptToUI(); document.getElementById("settingsMask").style.display = "flex"; }
+         function closeSettings() { document.getElementById("settingsMask").style.display = "none"; }
+         document.getElementById("settingsTrigger").addEventListener("click", openSettings);
+         document.getElementById("settingsMask").addEventListener("click", function (e) { if (e.target === this) closeSettings(); });
+         document.getElementById("chatMask").addEventListener("click", function (e) { if (e.target === this) closeChatMask(); });
+         document.getElementById("chat-input").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); sendMessage(); } });
+ 
+         // 预设按钮
+         document.querySelectorAll('.preset-btn').forEach(btn => {
+             btn.addEventListener('click', () => {
+                 const preset = API_PRESETS[btn.dataset.provider];
+                 if (preset) {
+                     document.getElementById('apiUrl').value = preset.url;
+                     document.getElementById('apiModel').value = preset.model;
+                     document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                     btn.classList.add('active');
+                     showToast('已切换到 ' + btn.textContent + ' 预设，请填入你的 API 密钥');
+                 }
+             });
+         });
+ 
+         // ======================== 秦彻自动消息 ========================
+         async function pushAutoMessage() {
+             const targetUser = "秦彻";
+             const apiCfg = getApiConfig();
+             if (!apiCfg.key) return;
+             const persona = getPersona("qinche");
+             const now = new Date();
+             const hour = now.getHours();
+             const weekArr = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+             const week = weekArr[now.getDay()];
+             const dateStr = now.toLocaleDateString();
+             let periodVibe = "";
+             if (hour >= 5 && hour < 9) periodVibe = "现在是早晨，可以说早安或日常问候";
+             else if (hour >= 9 && hour < 12) periodVibe = "现在是上午，随便聊聊日常";
+             else if (hour >= 12 && hour < 14) periodVibe = "现在是中午，可以问问吃了什么";
+             else if (hour >= 14 && hour < 18) periodVibe = "现在是下午，可以分享有趣的小事";
+             else if (hour >= 18 && hour < 22) periodVibe = "现在是傍晚，问问今天过得怎么样";
+             else periodVibe = "现在是深夜，可以催对方早点休息";
+             const timeContext = "当前时间：" + hour + "点，" + week + "，" + dateStr + "。" + periodVibe + "。以恋人秦彻的身份，主动发一条自然简短的消息，不要模板话，贴合当下时段氛围。";
+             let autoMsgText = "";
+             try {
+                 autoMsgText = await callApi([{ role: "system", content: persona }, { role: "user", content: timeContext }], { max_tokens: 120, temperature: 0.9 });
+                 autoMsgText = autoMsgText ? autoMsgText.trim() : "";
+             } catch (err) { console.log("auto msg fail:", err.message); return; }
+             if (!autoMsgText) return;
+ 
+             if (!chatHistory[targetUser]) chatHistory[targetUser] = [];
+             chatHistory[targetUser].push({ type: "other", text: autoMsgText });
+             localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+             contactData[targetUser].lastMsg = autoMsgText;
+             contactData[targetUser].lastTime = Date.now();
+             contactData[targetUser].unread = (contactData[targetUser].unread || 0) + 1;
+             saveContactStorage(); renderContactList();
+             if (currentChatUser === targetUser) { renderChatBody(); }
+         }
+ 
+         function scheduleNextAuto() {
+             if (autoTaskTimer) clearTimeout(autoTaskTimer);
+             const minMs = 2 * 60 * 60 * 1000;
+             const maxMs = 6 * 60 * 60 * 1000;
+             const delay = minMs + Math.random() * (maxMs - minMs);
+             autoTaskTimer = setTimeout(async () => { await pushAutoMessage(); scheduleNextAuto(); }, delay);
+         }
+ 
+         let lastVisibleTime = Date.now();
+         document.addEventListener("visibilitychange", () => {
+             if (document.visibilityState === "visible") {
+                 const wasHidden = Date.now() - lastVisibleTime;
+                 if (wasHidden > 10 * 60 * 1000 && getApiConfig().key) {
+                     setTimeout(async () => { await pushAutoMessage(); }, 30000 + Math.random() * 90000);
+                 }
+             }
+             lastVisibleTime = Date.now();
+         });
+ 
+         // ---- 自动检测：同服务器直接用 /api/chat，无需 CORS 代理 ----
+        if (window.location.hostname && window.location.hostname !== '') {
+            currentApiCfg.corsProxy = currentApiCfg.corsProxy || '';
+        }
+        // ======================== 初始化 ========================
+         window.onload = function () {
+             initContacts(); clearChatIfNewDay(); renderContactList(); loadApiConfigToUI();
+             if (currentApiCfg.key) { updateApiStatus('checking', '未验证'); } else { updateApiStatus('disconnected', '未配置'); }
+             setTimeout(async () => { await pushAutoMessage(); scheduleNextAuto(); }, 8000);
+         };
+ 
+         window.addEventListener("beforeunload", () => { if (autoTaskTimer) clearTimeout(autoTaskTimer); });
+ 
+         // HTML 转义
+         function escapeHtml(text) {
+             const div = document.createElement('div');
+             div.textContent = text;
+             return div.innerHTML;
+         }
+ 
+         // 全局暴露
+         window.closeRenameMask = closeRenameMask;
+         window.saveRename = saveRename;
+         window.closeTalkMask = closeTalkMask;
+         window.openTalkMask = openTalkMask;
+         window.closeSettings = closeSettings;
+         window.saveApiConfig = saveApiConfig;
+         
+         window.sendMessage = sendMessage;
+         window.closeChatMask = closeChatMask;
+         window.openChat = openChat;
+         window.uploadAvatar = uploadAvatar;
+         window.openRenameMask = openRenameMask;
+         window.renderContactList = renderContactList;
+         window.testApiConnection = testApiConnection;
+        window.saveRelaConfig = saveRelaConfig;
+        window.saveTtsConfig = saveTtsConfig;
+        window.saveCustomPrompt = saveCustomPrompt;
+        window.clearCustomPrompt = clearCustomPrompt;
+     </script>
+ </body>
+ </html>
