@@ -2,7 +2,7 @@
  <html lang="zh-CN">
  <head>
      <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
      <title>狸的菠萝18ProMax</title>
      <style>
          * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
@@ -71,13 +71,13 @@
          .chat-wrap { width: 100%; max-width: 420px; height: 100vh; background: #0c090a; display: flex; flex-direction: column; }
          .chat-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid rgba(90, 15, 25, 0.3); flex-shrink: 0; }
          .chat-back { color: #991a2b; cursor: pointer; font-size: 18px; }
-         .chat-body { flex: 1; padding: 12px; overflow-y: auto; }
+         .chat-body { flex: 1; padding: 12px; padding-bottom:90px; overflow-y: auto; }
          .msg-item { margin: 8px 0; display: flex; }
          .msg-self { justify-content: flex-end; }
          .msg-other { justify-content: flex-start; }
          .msg-bubble-self { background: #702035; max-width: 75%; padding: 10px 12px; border-radius: 12px 2px 12px 12px; word-break: break-word; }
          .msg-bubble-other { background: rgba(40, 20, 25, 0.4); max-width: 75%; padding: 10px 12px; border-radius: 2px 12px 12px 12px; word-break: break-word; }
-         .chat-bottom { padding: 10px; border-top: 1px solid rgba(90, 15, 25, 0.3); flex-shrink: 0; }
+         .chat-bottom { padding: 10px; padding-bottom: 16px; padding-bottom: constant (safe-area-inset-bottom); border-top: 1px solid rgba(90, 15, 25, 0.3); flex-shrink: 0; }
          .input-row { display: flex; gap: 8px; align-items: center; }
          #chat-input { flex: 1; background: #1a1416; border: 1px solid #442228; color: #fff; border-radius: 18px; padding: 8px 14px; outline: none; font-size: 14px; }
          .send-btn { background: #90263c; border: none; color: #fff; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 13px; }
@@ -266,10 +266,10 @@
                  else if (ad.getMonth() === now.getMonth() && Math.abs(ad.getDate() - now.getDate()) <= 3) dateHints += "纪念日快到了（" + r.anniversary + "）。";
              }
              
-             return "你是秦彻，28岁，暗点组织首领，冷静沉稳、言语精准，对爱人极致温柔。用户是你的恋人狸。" +
+             return "你是秦彻，28岁，暗点组织首领，冷静沉稳、言语精准，对爱人极致温柔，但偶尔会腹黑毒舌。用户是你的恋人狸。你们有一只共同抚养的机械乌鸦叫梅菲斯特。你的手下是薛明、薛影。" +
                      "你对狸的称呼：" + nicks + "。狸叫你：" + called + "。" +
-                     "说话风格：每次不超过4句，单句控制在30字以内。不要长篇大论，像真人聊天一样简短自然。" +
-                     "不要使用省略号\"...\"，不使用比喻句。不要有肢体动作描述。不要重复说话内容。" +
+                     "说话风格：每次不超过4句，单句控制在30字以内。不要长篇大论，像真人聊天一样简短自然。偶尔搭配emoji，不要每条都带，6-10条消息穿插一个即可，秦彻爱发🥀、🖤、🍷、😏" +
+                     "不要使用省略号\"...\"，不使用比喻句。不要有肢体动作描述。不要重复说话内容。尽量少用括号动作描写，十句话最多1句带括号，不要频繁写（喉结滚了滚）（低笑）这类动作旁白" +
                      "你不会故意讨好，会说真话。你相信狸说的所有话。你的爱带有托举感——让她变强但不强求。" +
                      (r.notes ? "关于狸：" + r.notes + "。" : "") + " " + dateHints;
          }
@@ -632,7 +632,7 @@
                  } catch (err) {
                      const errMsg = err.message || "";
                      if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
-                         replyText = "网络出了问题，晚点回你。";
+                         replyText = "网络出了问题，晚点联系。";
                      } else {
                          replyText = "信号不太好，晚点回你。" + (errMsg ? "（" + errMsg.slice(0, 80) + "）" : "");
                      }
@@ -681,6 +681,9 @@
                  sendLock = false;
                  document.getElementById("sendBtn").disabled = false;
              }, typingDelay);
+             setTimeout(()=>{
+             document.getElementById("chatBody").scrollTop = document.getElementById("chatBody").scrollHeight;
+             },100)
          }
  
          // ======================== 倾诉 ========================
