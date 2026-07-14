@@ -1,6 +1,0 @@
-# Ark Quickstart - Python Dependencies
-# 方舟快速入门 - Python 依赖库
-
-# 火山引擎方舟 SDK
-# 包含 volcenginesdkarkruntime 等依赖
-volcengine-python-sdk[ark]
