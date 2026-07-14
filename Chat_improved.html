@@ -177,7 +177,7 @@
                  <label style="font-size:13px;color:#b87c82;">彻对狸的称呼</label>
                  <input id="relaNickCall" placeholder="例如：小狸花,小猫,宝宝">
                  <label style="font-size:13px;color:#b87c82;">狸对彻的称呼</label>
-                 <input id="relaNickCalled" placeholder="例如：老公,龙,阿彻">
+                 <input id="relaNickCalled" placeholder="例如：Daddy,龙,彻彻">
                  <label style="font-size:13px;color:#b87c82;">狸的生日</label>
                  <input type="date" id="relaBirthday">
                  <label style="font-size:13px;color:#b87c82;">相恋纪念日</label>
@@ -224,9 +224,9 @@
              <div class="chat-bottom">
                  <div class="input-row">
                      <input type="text" id="chat-input" placeholder="发消息...">
-                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">发</button>
+                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
                  </div>
-                 <button class="talk-btn" id="talkBtn" style="display:none" onclick="openTalkMask()">💰 倾诉</button>
+                 <button class="talk-btn" id="talkBtn" style="display:none" onclick="openTalkMask()">倾诉</button>
              </div>
          </div>
      </div>
@@ -243,7 +243,7 @@
          const TAOTAO_FIX_PERSONA = "你是陶桃，性格活泼元气可爱，有着很强的活人感，很会玩梗打趣。清楚你和秦彻是一对十分幸福甜蜜的小情侣，全心全意当好你的贴心闺蜜，说话俏皮鲜活。";
  
          const DEFAULT_RELA = {
-             nickCall: "宝贝",
+             nickCall: "小猫大人",
              nickCalled: "彻",
              birthday: "",
              anniversary: "",
@@ -251,14 +251,14 @@
          };
          function buildQinchePrompt() {
              var r = JSON.parse(localStorage.getItem("relaConfig")) || DEFAULT_RELA;
-             var nicks = r.nickCall || "宝贝";
+             var nicks = r.nickCall || "小猫";
              var called = r.nickCalled || "彻";
              var now = new Date();
              var dateHints = "";
              if (r.birthday) {
                  var bd = new Date(r.birthday);
-                 if (bd.getMonth() === now.getMonth() && bd.getDate() === now.getDate()) dateHints += "今天是狸的生日！要祝她生日快乐。";
-                 else if (bd.getMonth() === now.getMonth() && Math.abs(bd.getDate() - now.getDate()) <= 3) dateHints += "狸的生日快到了（" + r.birthday + "），可以提到。";
+                 if (bd.getMonth() === now.getMonth() && bd.getDate() === now.getDate()) dateHints += "今天是小猫的生日！要祝她生日快乐。";
+                 else if (bd.getMonth() === now.getMonth() && Math.abs(bd.getDate() - now.getDate()) <= 3) dateHints += "猫的生日快到了（" + r.birthday + "），可以提到。";
              }
              if (r.anniversary) {
                  var ad = new Date(r.anniversary);
@@ -268,7 +268,7 @@
              
              return "你是秦彻，28岁，暗点组织首领，冷静沉稳、言语精准，对爱人极致温柔。用户是你的恋人狸。" +
                      "你对狸的称呼：" + nicks + "。狸叫你：" + called + "。" +
-                     "说话风格：用反斜线（\\）分隔短句，每次不超过4句，单句控制在30字以内。不要长篇大论，像真人聊天一样简短自然。" +
+                     "说话风格：每次不超过4句，单句控制在30字以内。不要长篇大论，像真人聊天一样简短自然。" +
                      "不要使用省略号\"...\"，不使用比喻句。不要有肢体动作描述。不要重复说话内容。" +
                      "你不会故意讨好，会说真话。你相信狸说的所有话。你的爱带有托举感——让她变强但不强求。" +
                      (r.notes ? "关于狸：" + r.notes + "。" : "") + " " + dateHints;
@@ -621,7 +621,7 @@
                          }));
                          const messages = [{ role: "system", content: persona }, ...hist, { role: "user", content: userMsg }];
                          replyText = await callApi(messages, { max_tokens: 300, temperature: 0.8 });
-                         if (!replyText) replyText = "嗯？信号不太好，晚点再聊～";
+                         if (!replyText) replyText = "嗯？信号不太好，晚点再聊";
                      } else if (targetName === "薛明" || targetName === "薛影") {
                          replyText = "（暂时不在线）";
                      } else if (targetName === "Sofi") {
@@ -638,29 +638,45 @@
                      }
                  }
                  if (currentChatUser === targetName && replyText !== null) {
-                     var parts = replyText.split("\\").filter(function(s) { return s.trim(); });
-                     var isQc = targetName === "秦彻";
-                     async function sendParts(arr) {
-                         for (var i = 0; i < arr.length; i++) {
-                             var part = arr[i].trim();
-                             if (!part) continue;
-                             if (!chatHistory[targetName]) chatHistory[targetName] = [];
-                             var msg = { type: "other", text: part };
-                             if (isQc && i === 0 && arr.length <= 4 && Math.random() < 0.3) {
-                                 var audio = await fetchVoice(part);
-                                 if (audio) { msg.audio = audio; msg.voice = true; }
-                             }
-                             chatHistory[targetName].push(msg);
-                             saveChatToLocal(); renderChatBody();
-                             contactData[targetName].lastMsg = part;
-                             contactData[targetName].lastTime = Date.now();
-                             saveContactStorage(); renderContactList();
-                             if (i < arr.length - 1) {
-                                 await new Promise(function(r) { setTimeout(r, 800 + Math.random() * 2000); });
-                             }
-                         }
-                     }
-                     sendParts(parts);
+                     // 按中文标点拆分短句，自动分割成多条独立消息
+                     function splitSentence(text) {
+                        // 匹配句号、问号、感叹号分割句子
+                        return text.split(/([。！？])/).reduce((arr, cur, idx, raw) => {
+                          // 标点和文字拼接完整一句
+                          if(idx % 2 === 0) return arr;
+                          const sentence = raw[idx - 1] + cur;
+                          if(sentence.trim()) arr.push(sentence.trim());
+                          return arr;
+                        }, []);
+                      }
+                      // 拆分所有短句
+                      var parts = splitSentence(replyText);
+                      var isQc = targetName === "秦彻";
+                      async function sendParts(arr) {
+                          for (var i = 0; i < arr.length; i++) {
+                              var part = arr[i].trim();
+                              if (!part) continue;
+                              if (!chatHistory[targetName]) chatHistory[targetName] = [];
+                              var msg = { type: "other", text: part };
+                              // 第一条短句随机生成语音
+                              if (isQc && i === 0 && arr.length <= 4 && Math.random() < 0.3) {
+                                  var audio = await fetchVoice(part);
+                                  if (audio) { msg.audio = audio; msg.voice = true; }
+                              }
+                              chatHistory[targetName].push(msg);
+                              saveChatToLocal(); 
+                              renderChatBody();
+                              contactData[targetName].lastMsg = part;
+                              contactData[targetName].lastTime = Date.now();
+                              saveContactStorage(); 
+                              renderContactList();
+                              // 每条消息之间随机停顿1~2.8秒，更像真人打字
+                              if (i < arr.length - 1) {
+                                  await new Promise(function(r) { setTimeout(r, 1000 + Math.random() * 1800); });
+                              }
+                           }
+                       }
+                       sendParts(parts);
                  }
                  sendLock = false;
                  document.getElementById("sendBtn").disabled = false;
