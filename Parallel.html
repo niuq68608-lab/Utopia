@@ -204,7 +204,7 @@ body{
   position: fixed;
   left:0;top:0;
   width:100%;height:100%;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0.85);
   display: none;
   z-index: 999;
   align-items: center;
@@ -311,7 +311,7 @@ body{
   </div>
 </div>
 
-<!-- 规则弹窗完整DOM -->
+<!-- 规则弹窗 -->
 <div class="pop-mask" id="rulePopMask">
   <div class="pop-box">
     <div class="pop-title">发言规范须知</div>
@@ -325,12 +325,12 @@ body{
   </div>
 </div>
 
-<!-- 资料弹窗 -->
+<!-- 个人资料弹窗（仅本地读取图片，不上传服务器） -->
 <div class="pop-mask" id="userPopMask">
   <div class="pop-box">
     <div class="pop-title">个人资料设置</div>
     <div class="pop-file">
-      上传头像（本地相册选择）：
+      选择本地头像（仅保存在本机，他人不可见）：
       <input type="file" accept="image/*" id="avatarFile">
     </div>
     <input class="pop-input" id="nameInput" placeholder="输入你的昵称（2-8个汉字/字符）">
@@ -350,18 +350,19 @@ body{
   </div>
 </div>
 
-<!-- 反馈弹窗 -->
+<!-- Sofi反馈弹窗 -->
 <div class="pop-mask" id="sofiPopMask">
   <div class="pop-box">
     <div class="pop-title">问题反馈</div>
     <div class="pop-desc">
       关于Bug，请加群和我们反馈吧～<br>
-      vx群号：暂无
+      vx群号：自行替换填写群号
     </div>
     <button class="pop-btn" id="closeSofiBtn">知道啦</button>
   </div>
 </div>
 
+<!-- 拥抱轻提示 -->
 <div class="tip-toast" id="hugToast"></div>
 
 <script>
@@ -375,7 +376,7 @@ const sensitiveWords = ["政治", "时政", "色情", "黄", "淫秽", "暴力",
 const MAX_MSG_NUM = 30;
 const SEND_LIMIT_PER_DAY = 3;
 
-// 全部DOM节点，无拼写错误
+// DOM节点
 const rulePopMask = document.getElementById("rulePopMask");
 const ruleConfirmBtn = document.getElementById("ruleConfirmBtn");
 const mailBtn = document.getElementById("mailBtn");
@@ -399,7 +400,7 @@ const sendLeft = document.getElementById("sendLeft");
 const hugToast = document.getElementById("hugToast");
 const unfoldBtn = document.getElementById("unfoldBtn");
 const unfoldCount = document.getElementById("unfoldCount");
-let avatarUrl = "";
+let avatarBase64 = "";
 
 // 本地存储工具
 function getStorage(key){
@@ -413,15 +414,7 @@ function getTodayStr(){
   return new Date().toLocaleDateString();
 }
 
-// 接口函数
-async function uploadImg(file){
-  const formData = new FormData();
-  formData.append("avatar", file);
-  const res = await fetch(`${API_HOST}/api/upload`, { method:"POST", body:formData });
-  const json = await res.json();
-  if(json.err) throw json.err;
-  return json.url;
-}
+// 云端留言/拥抱接口（无上传接口）
 async function getCloudMessages() {
   const res = await fetch(`${API_HOST}/api/messages`);
   return await res.json();
@@ -445,18 +438,14 @@ async function getMyHug(nick) {
   return await res.json();
 }
 
-// 初始化页面（强化弹窗逻辑）
+// 初始化页面，首次强制弹出规则弹窗
 function initPage(){
-  // 强制弹窗逻辑：只要标记不存在就弹出
   const ruleRead = getStorage(STORAGE_RULE_READ);
   if(ruleRead !== true){
     rulePopMask.style.display = "flex";
-  }else{
-    rulePopMask.style.display = "none";
   }
-
   const userInfo = getStorage(STORAGE_USER) || {avatar:"",nick:""};
-  avatarUrl = userInfo.avatar;
+  avatarBase64 = userInfo.avatar;
   nameInput.value = userInfo.nick;
   renderHeaderAvatar();
 
@@ -474,11 +463,11 @@ function initPage(){
   msgList.innerHTML = '<div style="text-align:center;color:#704448;font-size:13px;">点击上方按钮揭开第一条留言</div>';
 }
 
-// 顶部头像渲染（修复不显示问题）
+// 顶部头像渲染（仅本机可见）
 function renderHeaderAvatar(){
   const headImg = document.getElementById("userSetBtn");
-  if(avatarUrl && avatarUrl.length > 0){
-    headImg.src = avatarUrl;
+  if(avatarBase64){
+    headImg.src = avatarBase64;
     headImg.style.background = "transparent";
   }else{
     headImg.src = "";
@@ -510,7 +499,7 @@ unfoldBtn.onclick = async function(){
   renderShowMsg(showMsg);
 }
 
-// 渲染留言
+// 渲染留言（他人头像会空白，昵称文字正常）
 function renderShowMsg(msgArr){
   msgList.innerHTML = "";
   msgArr.forEach((item)=>{
@@ -555,7 +544,7 @@ function refreshSendBtnState(){
   sendBtn.disabled = !(user.avatar && user.nick && sendData.count < SEND_LIMIT_PER_DAY);
 }
 
-// 发送留言
+// 发送留言（只互通昵称+文字，头像仅本地base64，别人看不到）
 sendBtn.onclick = async function(){
   const txt = msgInput.value.trim();
   if(!txt) return alert("请输入留言内容");
@@ -591,28 +580,28 @@ closeUserBtn.onclick = ()=> userPopMask.style.display = "none";
 sofiBtn.onclick = ()=> sofiPopMask.style.display = "flex";
 closeSofiBtn.onclick = ()=> sofiPopMask.style.display = "none";
 
-// 上传头像监听
-avatarFile.addEventListener("change", async function(e){
+// 本地选择图片，只存在浏览器，不上传服务器
+avatarFile.addEventListener("change", function(e){
   const file = e.target.files[0];
   if(!file) return;
-  try{
-    avatarUrl = await uploadImg(file);
-    alert("头像上传成功，记得点保存资料！");
-  }catch(err){
-    alert("上传失败："+err);
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    avatarBase64 = ev.target.result;
+    alert("头像已本地加载，仅你自己可见，记得保存资料");
   }
+  reader.readAsDataURL(file);
 })
 
-// 保存资料
+// 保存昵称+本地头像到浏览器本地
 saveUserBtn.onclick = function(){
   const nick = nameInput.value.trim();
-  if(!avatarUrl || avatarUrl.length === 0) return alert("请先上传头像");
+  if(!avatarBase64) return alert("请先选择本地头像");
   if(nick.length <2 || nick.length>8) return alert("昵称2-8字符");
-  setStorage(STORAGE_USER, {avatar:avatarUrl, nick:nick});
+  setStorage(STORAGE_USER, {avatar:avatarBase64, nick:nick});
   userPopMask.style.display = "none";
   renderHeaderAvatar();
-  alert("资料保存成功");
   refreshSendBtnState();
+  alert("资料保存成功");
 }
 
 // 信箱渲染
@@ -639,7 +628,6 @@ async function renderMailBox(){
   })
 }
 
-// 页面启动
 initPage();
 </script>
 </body>
