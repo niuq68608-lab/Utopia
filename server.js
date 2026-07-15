@@ -1,5 +1,7 @@
 ﻿const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
+const fs = require("fs")
 const path = require("path");
 
 const app = express();
@@ -15,6 +17,28 @@ const DEFAULT_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 app.use(express.static(__dirname));
 
 // ---- 新增平行世界留言&拥抱公共接口 ----
+// 创建图片上传文件夹
+const uploadDir = path.join(__dirname, "upload");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+// 上传配置
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const name = Date.now() + Math.random().toString(36).slice(2) + ext;
+    cb(null, name);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 } });
+
+// 头像上传接口
+app.post("/api/upload", upload.single("avatar"), (req, res) => {
+  if (!req.file) return res.status(400).json({ err: "请上传图片" });
+  const imgUrl = `${req.protocol}://${req.headers.host}/upload/${req.file.filename}`;
+  res.json({ url: imgUrl });
+});
+
+// 留言、拥抱内存存储（重启丢失，长期使用需数据库）
 let msgList = [];
 const MAX_MSG_NUM = 30;
 let hugRecords = [];
