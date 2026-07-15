@@ -6,6 +6,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(express.json({limit:"10mb"}));
+
 // ---- 默认 API 配置（用户可在聊天页面自行覆盖）----
 const DEFAULT_API_KEY = "VxCgNvLTE.ChB6aU1DUTVKVTU4cEZ4ek5TEO3V4PcHGAEqEAl43vyg8U8trBxpP_KAd0M.os3Vjw-sptwj4XDu6aUirbdjrCwBIJTI4IUgdTdL_9DzYObTYWTF8Kv7-nyP0cLoRUW47Cjdr2lhab7WonofLgeZ";
 const DEFAULT_MODEL = "doubao-lite-32k";
