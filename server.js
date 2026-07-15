@@ -14,6 +14,37 @@ const DEFAULT_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 // ---- 静态文件服务（整个 UTOPIA 网站）----
 app.use(express.static(__dirname));
 
+// ---- 新增平行世界留言&拥抱公共接口 ----
+let msgList = [];
+const MAX_MSG_NUM = 30;
+let hugRecords = [];
+
+// 获取全部公共留言
+app.get("/api/messages", (req, res) => {
+  res.json(msgList);
+});
+
+// 发布新留言
+app.post("/api/messages", (req, res) => {
+  const item = req.body;
+  msgList.unshift(item);
+  if (msgList.length > MAX_MSG_NUM) msgList = msgList.slice(0, MAX_MSG_NUM);
+  res.json({ success: true });
+});
+
+// 获取指定用户的拥抱信箱
+app.get("/api/hug/:nick", (req, res) => {
+  const target = req.params.nick;
+  const myHugs = hugRecords.filter(v => v.targetNick === target);
+  res.json(myHugs);
+});
+
+// 发送拥抱记录
+app.post("/api/hug", (req, res) => {
+  hugRecords.unshift(req.body);
+  res.json({ success: true });
+});
+
 // ---- API 代理 ----
 app.post("/api/chat", async (req, res) => {
   const { role, history, msg, apiKey, model, apiUrl } = req.body;
