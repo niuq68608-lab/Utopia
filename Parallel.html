@@ -164,7 +164,7 @@ body{
   background: rgba(20,15,20,0.6);
   border: 1px solid rgba(90,15,25,0.4);
   border-radius: 10px;
-  padding: 12px;
+  padding: 12;
   color: #f0dede;
   font-size: 14px;
   min-height: 80px;
@@ -325,7 +325,7 @@ body{
   </div>
 </div>
 
-<!-- 个人资料弹窗（仅本地读取图片，不上传服务器） -->
+<!-- 个人资料弹窗 -->
 <div class="pop-mask" id="userPopMask">
   <div class="pop-box">
     <div class="pop-title">个人资料设置</div>
@@ -414,7 +414,7 @@ function getTodayStr(){
   return new Date().toLocaleDateString();
 }
 
-// 云端留言/拥抱接口（无上传接口）
+// 云端接口
 async function getCloudMessages() {
   const res = await fetch(`${API_HOST}/api/messages`);
   return await res.json();
@@ -438,7 +438,7 @@ async function getMyHug(nick) {
   return await res.json();
 }
 
-// 初始化页面，首次强制弹出规则弹窗
+// 初始化页面
 function initPage(){
   const ruleRead = getStorage(STORAGE_RULE_READ);
   if(ruleRead !== true){
@@ -499,7 +499,7 @@ unfoldBtn.onclick = async function(){
   renderShowMsg(showMsg);
 }
 
-// 渲染留言（他人头像会空白，昵称文字正常）
+// 渲染留言
 function renderShowMsg(msgArr){
   msgList.innerHTML = "";
   msgArr.forEach((item)=>{
@@ -544,15 +544,16 @@ function refreshSendBtnState(){
   sendBtn.disabled = !(user.avatar && user.nick && sendData.count < SEND_LIMIT_PER_DAY);
 }
 
-// 发送留言（只互通昵称+文字，头像仅本地base64，别人看不到）
+// ========== 关键修复：发送留言只传空avatar，不带大图base64 ==========
 sendBtn.onclick = async function(){
   const txt = msgInput.value.trim();
   if(!txt) return alert("请输入留言内容");
-  if(checkSensitive(txt)) return alert("内容含政治/色情/暴力违规词汇，请修改");
+  if(checkSensitive(txt)) return alert("内容含违规词汇，请修改");
   const user = getStorage(STORAGE_USER);
   const sendData = getStorage(STORAGE_SEND_COUNT);
+  // avatar固定传空字符串，彻底解决请求超大被拦截
   const newMsg = {
-    avatar: user.avatar,
+    avatar: "",
     nick: user.nick,
     content: txt,
     time: Date.now()
@@ -563,6 +564,7 @@ sendBtn.onclick = async function(){
   msgInput.value = "";
   sendLeft.innerText = SEND_LIMIT_PER_DAY - sendData.count;
   refreshSendBtnState();
+  alert("留言发送成功！");
 }
 
 // 弹窗绑定
@@ -580,19 +582,19 @@ closeUserBtn.onclick = ()=> userPopMask.style.display = "none";
 sofiBtn.onclick = ()=> sofiPopMask.style.display = "flex";
 closeSofiBtn.onclick = ()=> sofiPopMask.style.display = "none";
 
-// 本地选择图片，只存在浏览器，不上传服务器
+// 本地读取图片（仅存在本机，不上传服务器）
 avatarFile.addEventListener("change", function(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
   reader.onload = ev=>{
     avatarBase64 = ev.target.result;
-    alert("头像已本地加载，仅你自己可见，记得保存资料");
+    alert("头像仅保存在你本机，其他人看不到，记得保存资料");
   }
   reader.readAsDataURL(file);
 })
 
-// 保存昵称+本地头像到浏览器本地
+// 保存昵称+本地头像
 saveUserBtn.onclick = function(){
   const nick = nameInput.value.trim();
   if(!avatarBase64) return alert("请先选择本地头像");
